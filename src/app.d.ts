@@ -16,6 +16,7 @@ declare global {
 		interface Platform {
 			env?: {
 				MODEL_CACHE?: KVNamespace;
+				R2?: R2Bucket;
 			};
 		}
 	}
