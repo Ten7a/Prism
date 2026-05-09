@@ -81,6 +81,20 @@ export async function finishJob(
 	});
 }
 
+export async function refundShards(
+	jobId: string,
+	userId: string,
+	tokens: number
+): Promise<void> {
+	if (tokens <= 0) return;
+	await db.insert(tokenLedger).values({
+		userId,
+		delta: tokens,
+		reason: 'generation_refund',
+		jobId
+	});
+}
+
 export async function failJob(jobId: string, errorCode: string): Promise<void> {
 	await db.transaction(async (tx) => {
 		const [job] = await tx
