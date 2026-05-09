@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import ImageTile from '$lib/components/ImageTile.svelte';
+	import AdSlot from '$lib/components/AdSlot.svelte';
 	import type { PageData } from './$types';
 	import type { LibraryItem } from '$lib/server/library/queries';
 
@@ -58,6 +59,8 @@
 		<span class="tag">/ library</span>
 		<span class="count">{items.length}{cursor ? '+' : ''}</span>
 	</header>
+
+	<AdSlot slot="library-top" />
 
 	{#if items.length === 0}
 		<p class="empty">No images yet. <a href="/generate">Generate one →</a></p>
