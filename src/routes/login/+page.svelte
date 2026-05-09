@@ -17,7 +17,7 @@
 		<div class="auth-error">{form.error}</div>
 	{/if}
 
-	<form method="POST" class="auth-form" use:enhance>
+	<form method="POST" action="?/signin" class="auth-form" use:enhance>
 		<label>
 			Email
 			<input type="email" name="email" autocomplete="email" required value={form?.email ?? ''} />
