@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { loadModels } from '$lib/server/openrouter/registry';
-import { getBalance } from '$lib/server/db/queries/balance';
+import { getEffectiveBalance } from '$lib/server/tokens/balance';
 import { getImage } from '$lib/server/library/queries';
 import { storage } from '$lib/server/storage';
 
@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	const [models, balance] = await Promise.all([
 		loadModels(platform),
-		getBalance(locals.user.id)
+		getEffectiveBalance(locals.user.id)
 	]);
 
 	const refId = url.searchParams.get('ref');

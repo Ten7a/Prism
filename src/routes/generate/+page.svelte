@@ -169,7 +169,7 @@
 <section class="generate">
 	<header class="page-head">
 		<span class="tag">/ generate</span>
-		<span class="balance">{balance} tok</span>
+		<span class="balance" data-testid="balance">{balance} tok</span>
 	</header>
 
 	<form class="composer" onsubmit={submit}>
