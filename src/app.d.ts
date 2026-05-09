@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import type { User, Session } from 'better-auth/minimal';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -12,7 +13,11 @@ declare global {
 		// interface Error {}
 		// interface PageData {}
 		// interface PageState {}
-		// interface Platform {}
+		interface Platform {
+			env?: {
+				MODEL_CACHE?: KVNamespace;
+			};
+		}
 	}
 }
 
