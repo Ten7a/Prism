@@ -59,7 +59,9 @@
 	let ratio = $state<Ratio>('1:1');
 	let quality = $state<Quality>('1k');
 	let batch = $state(1);
-	let refKeys = $state<{ key: string; url: string }[]>([]);
+	let refKeys = $state<{ key: string; url: string }[]>(
+		data.preloadRef ? [data.preloadRef] : []
+	);
 	let submitting = $state(false);
 	let submitError = $state<string | null>(null);
 
