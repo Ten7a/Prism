@@ -15,7 +15,7 @@
 		<h1>{data.email}</h1>
 		<p class="meta">
 			{data.emailVerified ? 'Verified' : 'Unverified'} · Balance
-			<strong>{data.balance}</strong> tokens
+			<strong data-testid="balance">{data.balance}</strong> tokens
 		</p>
 	</header>
 
@@ -38,7 +38,15 @@
 
 		<div class="block">
 			<h2>Receipts</h2>
-			<p class="muted">Stripe receipt history will appear here.</p>
+			{#if data.hasBilling}
+				<form method="POST" action="/api/billing/portal">
+					<button type="submit" class="danger-btn">Manage billing & receipts</button>
+				</form>
+			{:else}
+				<p class="muted">
+					Buy a token pack from <a href="/pricing">/pricing</a> to unlock invoices and receipts.
+				</p>
+			{/if}
 		</div>
 
 		<div class="block danger">

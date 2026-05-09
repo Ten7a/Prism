@@ -8,6 +8,13 @@
       "when": 1778323503742,
       "tag": "0000_simple_metal_master",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778351480849,
+      "tag": "0001_loud_siren",
+      "breakpoints": true
     }
   ]
 }

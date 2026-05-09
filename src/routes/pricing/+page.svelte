@@ -1,5 +1,4 @@
 <script lang="ts">
-	import RuleRow from '$lib/components/RuleRow.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -26,13 +25,17 @@
 
 	<div class="rows">
 		{#each data.packs as p (p.slug)}
-			<RuleRow
-				label={`Buy ${p.tokens}`}
-				sublabel={p.note}
-				price={usd(p.priceCents)}
-				href={`/api/billing/checkout?pack=${p.slug}`}
-				cta="checkout"
-			/>
+			<form method="POST" action="/api/billing/checkout" class="row">
+				<input type="hidden" name="pack" value={p.slug} />
+				<span class="label">
+					<span class="primary">Buy {p.tokens}</span>
+					{#if p.note}
+						<span class="sub">{p.note}</span>
+					{/if}
+				</span>
+				<span class="price">{usd(p.priceCents)}</span>
+				<button type="submit" class="cta">checkout →</button>
+			</form>
 		{/each}
 	</div>
 
@@ -78,6 +81,59 @@
 	.rows {
 		display: flex;
 		flex-direction: column;
+	}
+	.row {
+		display: grid;
+		grid-template-columns: 1fr auto auto;
+		align-items: baseline;
+		gap: 24px;
+		padding: 18px 0;
+		border-top: 1px solid var(--color-rule);
+		font-family: var(--font-mono);
+		color: var(--color-fg);
+		margin: 0;
+		transition: background 0.15s;
+	}
+	.row:last-child {
+		border-bottom: 1px solid var(--color-rule);
+	}
+	.row:hover {
+		background: rgba(255, 255, 255, 0.03);
+	}
+	.label {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+	.primary {
+		font-size: 14px;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+	.sub {
+		font-size: 11px;
+		letter-spacing: 0.08em;
+		color: var(--color-fg-50);
+	}
+	.price {
+		font-size: 14px;
+		color: var(--color-fg);
+		min-width: 80px;
+		text-align: right;
+	}
+	.cta {
+		font-size: 11px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-fg-70);
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		font-family: inherit;
+		padding: 0;
+	}
+	.cta:hover {
+		color: var(--color-fg);
 	}
 	.note {
 		margin-top: 28px;
