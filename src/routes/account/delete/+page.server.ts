@@ -4,11 +4,11 @@ import { APIError } from 'better-auth/api';
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { image, user as userTable } from '$lib/server/db/schema';
-import { bulkDelete } from '$lib/server/storage/r2';
+import { bulkDelete } from '$lib/server/storage';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
+	default: async ({ request, locals, cookies, platform }) => {
 		if (!locals.user) throw redirect(303, '/login');
 
 		const data = await request.formData();
@@ -36,7 +36,10 @@ export const actions: Actions = {
 
 		await db.delete(userTable).where(eq(userTable.id, userId));
 
-		await bulkDelete(keys.map((k) => k.r2Key));
+		await bulkDelete(
+			keys.map((k) => k.r2Key),
+			platform
+		);
 
 		for (const name of cookies.getAll().map((c) => c.name)) {
 			cookies.delete(name, { path: '/' });

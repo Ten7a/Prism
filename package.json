@@ -60,6 +60,7 @@
 		"vitest-browser-svelte": "^2.1.0"
 	},
 	"dependencies": {
+		"aws4fetch": "^1.0.20",
 		"nodemailer": "^8.0.7",
 		"resend": "^6.12.3"
 	}
