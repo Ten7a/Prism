@@ -18,6 +18,9 @@ declare global {
 				MODEL_CACHE?: KVNamespace;
 				R2?: R2Bucket;
 			};
+			context?: {
+				waitUntil(promise: Promise<unknown>): void;
+			};
 		}
 	}
 }

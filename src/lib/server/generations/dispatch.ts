@@ -1,0 +1,206 @@
+import { eq } from 'drizzle-orm';
+import { db } from '../db/index';
+import { generationJob, image as imageTbl } from '../db/schema';
+import { failJob, finishJob, refundShards, type FinishJobImage } from '../db/queries/jobs';
+import { getModel } from '../openrouter/registry';
+import { estimateCost } from '../openrouter/pricing';
+import { generateOne, type GeneratedImage } from '../openrouter/generate';
+import { OpenRouterError } from '../openrouter/client';
+import { storage, imageKey } from '../storage';
+import { extForMime } from '../storage/keys';
+import { publish } from './notify';
+import type { Quality, Ratio } from '../openrouter/types';
+
+interface ShardOk {
+	ok: true;
+	i: number;
+	images: { row: FinishJobImage; src: GeneratedImage }[];
+	costTokens: number;
+}
+interface ShardErr {
+	ok: false;
+	i: number;
+	code: string;
+	costTokens: number;
+}
+
+function classifyError(err: unknown): string {
+	if (err instanceof OpenRouterError) {
+		if (err.status === 429) return 'openrouter_rate_limited';
+		if (err.status === 408) return 'openrouter_timeout';
+		if (err.status && err.status >= 500) return 'openrouter_5xx';
+		if (err.status && err.status >= 400) return 'openrouter_4xx';
+		return 'openrouter_error';
+	}
+	if (err instanceof Error && /fetch|network/i.test(err.message)) return 'network_error';
+	return 'internal_error';
+}
+
+export async function dispatch(jobId: string, platform?: App.Platform): Promise<void> {
+	let userId: string | null = null;
+	try {
+		const [job] = await db
+			.select()
+			.from(generationJob)
+			.where(eq(generationJob.id, jobId))
+			.limit(1);
+		if (!job) {
+			console.warn('[dispatch] job not found:', jobId);
+			return;
+		}
+		userId = job.userId;
+
+		await db
+			.update(generationJob)
+			.set({ status: 'running' })
+			.where(eq(generationJob.id, jobId));
+
+		const model = await getModel(job.modelId, platform);
+		if (!model) {
+			await failJob(jobId, 'model_unavailable');
+			await publish(jobId, { type: 'error', code: 'model_unavailable' });
+			return;
+		}
+
+		const quality = job.quality as Quality;
+		const ratio = job.ratio as Ratio;
+
+		// Resolve ref images to short-lived signed URLs.
+		const store = storage(platform);
+		const refImageUrls: string[] = [];
+		for (const key of job.refImageKeys ?? []) {
+			try {
+				refImageUrls.push(await store.signedUrl(key, 600));
+			} catch (err) {
+				console.warn(
+					'[dispatch] could not sign ref image',
+					key,
+					(err as Error).message
+				);
+			}
+		}
+
+		const perShardTokens = estimateCost(model, { quality, ratio, batch: 1 }).internalTokens;
+
+		await publish(jobId, { type: 'progress', i: 0, total: job.batch });
+
+		const shardPromise = async (i: number): Promise<ShardOk | ShardErr> => {
+			try {
+				const generated = await generateOne(model, {
+					prompt: job.prompt,
+					quality,
+					ratio,
+					refImageUrls
+				});
+				const rows: { row: FinishJobImage; src: GeneratedImage }[] = [];
+				for (let k = 0; k < generated.length; k++) {
+					const g = generated[k];
+					const ext = extForMime(g.mime);
+					const key = imageKey(job.userId, jobId, generated.length === 1 ? i : i * 100 + k, ext);
+					await store.put(key, g.bytes, { contentType: g.mime });
+					rows.push({
+						row: {
+							r2Key: key,
+							width: g.width,
+							height: g.height,
+							mime: g.mime,
+							bytes: g.bytes.byteLength
+						},
+						src: g
+					});
+				}
+				return { ok: true, i, images: rows, costTokens: perShardTokens };
+			} catch (err) {
+				const code = classifyError(err);
+				console.warn(`[dispatch] shard ${i} failed:`, (err as Error).message);
+				return { ok: false, i, code, costTokens: perShardTokens };
+			}
+		};
+
+		const settled = await Promise.all(
+			Array.from({ length: job.batch }, (_, i) => shardPromise(i))
+		);
+
+		const successes = settled.filter((r): r is ShardOk => r.ok);
+		const failures = settled.filter((r): r is ShardErr => !r.ok);
+
+		// Publish image events for successes (with signed URLs).
+		const allImages: FinishJobImage[] = [];
+		for (const s of successes) {
+			for (const img of s.images) {
+				allImages.push(img.row);
+			}
+		}
+
+		const costActual = successes.reduce((sum, s) => sum + s.costTokens, 0);
+
+		if (successes.length === 0) {
+			await failJob(jobId, failures[0]?.code ?? 'all_shards_failed');
+			await publish(jobId, {
+				type: 'error',
+				code: failures[0]?.code ?? 'all_shards_failed'
+			});
+			return;
+		}
+
+		// Refund failed shards (partial) or the leftover (if estimate > actual on full success).
+		const refundTokens = job.costEstimate - costActual;
+		if (refundTokens > 0) {
+			await refundShards(jobId, job.userId, refundTokens);
+		}
+
+		await finishJob(jobId, allImages, costActual);
+
+		// Now publish per-image events (need image IDs from DB to construct API URLs).
+		const insertedImages = await db
+			.select()
+			.from(imageTbl)
+			.where(eq(imageTbl.jobId, jobId));
+		for (const inserted of insertedImages) {
+			// Match insertion order back to the shard index by r2Key.
+			let shardIdx = 0;
+			for (const s of successes) {
+				const hit = s.images.find((img) => img.row.r2Key === inserted.r2Key);
+				if (hit) {
+					shardIdx = s.i;
+					break;
+				}
+			}
+			let url: string | undefined;
+			try {
+				url = await store.signedUrl(inserted.r2Key, 600);
+			} catch {
+				/* fall through to api redirect path on the client */
+			}
+			await publish(jobId, {
+				type: 'image',
+				i: shardIdx,
+				imageId: inserted.id,
+				key: inserted.r2Key,
+				url,
+				width: inserted.width,
+				height: inserted.height,
+				mime: inserted.mime,
+				bytes: inserted.bytes
+			});
+		}
+
+		for (const f of failures) {
+			await publish(jobId, { type: 'shard_error', i: f.i, code: f.code });
+		}
+
+		await publish(jobId, { type: 'done', costActual });
+	} catch (err) {
+		console.error('[dispatch] uncaught:', (err as Error).message);
+		try {
+			await failJob(jobId, 'internal_error');
+		} catch (e2) {
+			console.error('[dispatch] failJob also threw:', (e2 as Error).message);
+		}
+		try {
+			await publish(jobId, { type: 'error', code: 'internal_error' });
+		} catch {
+			/* swallow */
+		}
+	}
+}

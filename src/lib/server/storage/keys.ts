@@ -17,6 +17,10 @@ export function uploadKey(userId: string, mime: string): string {
 	return `uploads/${userId}/${crypto.randomUUID()}.${ext}`;
 }
 
-export function imageKey(userId: string, jobId: string, idx: number): string {
-	return `images/${userId}/${jobId}/${idx}.png`;
+export function imageKey(userId: string, jobId: string, idx: number, ext = 'png'): string {
+	return `images/${userId}/${jobId}/${idx}.${ext}`;
+}
+
+export function extForMime(mime: string): string {
+	return MIME_EXT[mime] ?? 'png';
 }
