@@ -1,3 +1,7 @@
+<script lang="ts">
+	import AdSlot from '$lib/components/AdSlot.svelte';
+</script>
+
 <section class="sec hero">
 	<span class="tag">v0.1 — preview</span>
 	<h1>Generate images, mono and direct.</h1>
@@ -32,6 +36,10 @@
 			<p>Saved to your library. Searchable, taggable, exportable.</p>
 		</li>
 	</ol>
+</section>
+
+<section class="sec ad-footer">
+	<AdSlot slot="landing-footer" />
 </section>
 
 <style>

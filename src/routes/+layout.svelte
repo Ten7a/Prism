@@ -1,8 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { hydrateConsentFromDocument } from '$lib/stores/consent';
 
 	let { children } = $props();
+
+	onMount(() => {
+		hydrateConsentFromDocument();
+	});
 </script>
 
 <svelte:head>
