@@ -10,6 +10,10 @@ import { storage, imageKey } from '../storage';
 import { extForMime } from '../storage/keys';
 import { publish } from './notify';
 import type { Quality, Ratio } from '../openrouter/types';
+import { baseLog } from '../log';
+import { incCounter } from '../log/metrics';
+
+const log = baseLog.child({ mod: 'dispatch' });
 
 interface ShardOk {
 	ok: true;
@@ -45,7 +49,7 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 			.where(eq(generationJob.id, jobId))
 			.limit(1);
 		if (!job) {
-			console.warn('[dispatch] job not found:', jobId);
+			log.warn({ jobId }, 'job not found');
 			return;
 		}
 		userId = job.userId;
@@ -74,11 +78,7 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 			try {
 				refImageUrls.push(await store.signedUrl(key, 600));
 			} catch (err) {
-				console.warn(
-					'[dispatch] could not sign ref image',
-					key,
-					(err as Error).message
-				);
+				log.warn({ key, err: (err as Error).message }, 'could not sign ref image');
 			}
 		}
 
@@ -122,7 +122,7 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 				return { ok: true, i, images: rows, costTokens: perShardTokens };
 			} catch (err) {
 				const code = classifyError(err);
-				console.warn(`[dispatch] shard ${i} failed:`, (err as Error).message);
+				log.warn({ jobId, shard: i, err: (err as Error).message }, 'shard failed');
 				return { ok: false, i, code, costTokens: perShardTokens };
 			}
 		};
@@ -151,11 +151,10 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 		const costActual = successes.reduce((sum, s) => sum + s.costTokens, 0);
 
 		if (successes.length === 0) {
-			await failJob(jobId, failures[0]?.code ?? 'all_shards_failed');
-			await publish(jobId, {
-				type: 'error',
-				code: failures[0]?.code ?? 'all_shards_failed'
-			});
+			const code = failures[0]?.code ?? 'all_shards_failed';
+			await failJob(jobId, code);
+			incCounter('prism_generation_total', { status: 'failed' });
+			await publish(jobId, { type: 'error', code });
 			return;
 		}
 
@@ -163,7 +162,13 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 		const refundTokens = job.costEstimate - costActual;
 		if (refundTokens > 0) {
 			await refundShards(jobId, job.userId, refundTokens);
+			incCounter('prism_token_refund_total', undefined, refundTokens);
 		}
+
+		incCounter('prism_token_debit_total', undefined, costActual);
+		incCounter('prism_generation_total', {
+			status: failures.length > 0 ? 'partial' : 'ok'
+		});
 
 		await finishJob(jobId, allImages, costActual);
 
@@ -207,11 +212,12 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 
 		await publish(jobId, { type: 'done', costActual });
 	} catch (err) {
-		console.error('[dispatch] uncaught:', (err as Error).message);
+		log.error({ jobId, err: (err as Error).message }, 'uncaught');
+		incCounter('prism_generation_total', { status: 'failed' });
 		try {
 			await failJob(jobId, 'internal_error');
 		} catch (e2) {
-			console.error('[dispatch] failJob also threw:', (e2 as Error).message);
+			log.error({ jobId, err: (e2 as Error).message }, 'failJob also threw');
 		}
 		try {
 			await publish(jobId, { type: 'error', code: 'internal_error' });

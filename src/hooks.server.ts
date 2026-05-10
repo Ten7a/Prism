@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { building } from '$app/environment';
 import { env } from '$env/dynamic/private';
@@ -6,6 +6,32 @@ import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { grantDailyAllowanceIfDue } from '$lib/server/tokens/grant';
 import { getLimiter, parseRateSpec } from '$lib/server/ratelimit';
+import { baseLog, serialiseError } from '$lib/server/log';
+import { reportError } from '$lib/server/log/error-reporter';
+import { incCounter } from '$lib/server/log/metrics';
+
+const handleRequestContext: Handle = async ({ event, resolve }) => {
+	const requestId = event.request.headers.get('x-request-id') ?? crypto.randomUUID();
+	event.locals.requestId = requestId;
+	event.locals.log = baseLog.child({
+		requestId,
+		path: event.url.pathname,
+		method: event.request.method
+	});
+	event.setHeaders({ 'x-request-id': requestId });
+	const start = Date.now();
+	try {
+		const res = await resolve(event);
+		const route = event.route?.id ?? 'unknown';
+		event.locals.log.info({ status: res.status, ms: Date.now() - start, route }, 'req');
+		incCounter('prism_http_requests_total', { route, status: res.status });
+		return res;
+	} catch (err) {
+		event.locals.log.error({ err: serialiseError(err) }, 'unhandled');
+		await reportError(err, { requestId });
+		throw err;
+	}
+};
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
 	const session = await auth.api.getSession({ headers: event.request.headers });
@@ -14,8 +40,9 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
 		event.locals.session = session.session;
 		event.locals.user = session.user;
 		const userId = session.user.id;
+		const log = event.locals.log;
 		const grant = grantDailyAllowanceIfDue(userId).catch((err) => {
-			console.error('[grant] failed', err);
+			log.error({ err: serialiseError(err) }, 'grant failed');
 		});
 		const ctx = (
 			event.platform as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined
@@ -42,6 +69,7 @@ const handleApiRateLimit: Handle = async ({ event, resolve }) => {
 		: `api:ip:${getClientAddressSafe(event)}`;
 	const result = await limiter.hit(key, spec);
 	if (!result.allowed) {
+		event.locals.log?.warn({ key, retryAfter: result.retryAfterSec }, 'rate limited');
 		return new Response('rate_limited', {
 			status: 429,
 			headers: {
@@ -61,4 +89,11 @@ function getClientAddressSafe(event: Parameters<Handle>[0]['event']): string {
 	}
 }
 
-export const handle: Handle = sequence(handleBetterAuth, handleApiRateLimit);
+export const handle: Handle = sequence(handleRequestContext, handleBetterAuth, handleApiRateLimit);
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const log = event.locals?.log ?? baseLog;
+	log.error({ err: serialiseError(error) }, 'server-error');
+	void reportError(error, { requestId: event.locals?.requestId });
+	return { message: 'Internal error', requestId: event.locals?.requestId };
+};

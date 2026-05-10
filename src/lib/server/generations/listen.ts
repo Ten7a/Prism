@@ -1,5 +1,8 @@
 import postgres from 'postgres';
 import { env } from '$env/dynamic/private';
+import { baseLog } from '$lib/server/log';
+
+const log = baseLog.child({ mod: 'listen' });
 
 type Listener = (payload: string) => void;
 
@@ -30,7 +33,7 @@ export async function pgSubscribe(channel: string, cb: Listener): Promise<() => 
 				try {
 					s(payload);
 				} catch (err) {
-					console.warn('[listen] subscriber threw:', (err as Error).message);
+					log.warn({ err: (err as Error).message }, 'subscriber threw');
 				}
 			}
 		});
@@ -48,9 +51,7 @@ export async function pgSubscribe(channel: string, cb: Listener): Promise<() => 
 			if (handle) {
 				handle
 					.then((h) => h.unlisten())
-					.catch((err) =>
-						console.warn('[listen] unlisten failed:', (err as Error).message)
-					);
+					.catch((err) => log.warn({ err: (err as Error).message }, 'unlisten failed'));
 			}
 		}
 	};

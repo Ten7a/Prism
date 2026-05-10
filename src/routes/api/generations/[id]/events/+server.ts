@@ -5,6 +5,9 @@ import { db } from '$lib/server/db/index';
 import { generationJob, image as imageTbl } from '$lib/server/db/schema';
 import { subscribe, type JobEvent } from '$lib/server/generations/notify';
 import { storage } from '$lib/server/storage';
+import { baseLog } from '$lib/server/log';
+
+const sseLog = baseLog.child({ mod: 'sse' });
 
 const POLL_INTERVAL_MS = 750;
 const HEARTBEAT_MS = 25_000;
@@ -163,7 +166,7 @@ export const GET: RequestHandler = async ({ params, locals, request, platform })
 							close();
 						}
 					} catch (err) {
-						console.warn('[sse] poll failed:', (err as Error).message);
+						sseLog.warn({ err: (err as Error).message }, 'poll failed');
 					}
 				}, POLL_INTERVAL_MS);
 				cleanups.push(() => clearInterval(poll));
@@ -184,7 +187,7 @@ export const GET: RequestHandler = async ({ params, locals, request, platform })
 						off();
 					});
 				} catch (err) {
-					console.warn('[sse] pgSubscribe unavailable:', (err as Error).message);
+					sseLog.warn({ err: (err as Error).message }, 'pgSubscribe unavailable');
 				}
 			}
 

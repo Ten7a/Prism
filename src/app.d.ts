@@ -8,6 +8,8 @@ declare global {
 		interface Locals {
 			user?: User;
 			session?: Session;
+			log: import('$lib/server/log').Logger;
+			requestId: string;
 		}
 
 		// interface Error {}

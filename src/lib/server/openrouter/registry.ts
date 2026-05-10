@@ -2,6 +2,9 @@ import { orFetch } from './client';
 import { normalise } from './pricing';
 import { fallbackModels } from './static-fallback';
 import type { ModelEntry } from './types';
+import { baseLog } from '$lib/server/log';
+
+const log = baseLog.child({ mod: 'openrouter' });
 
 const CACHE_KEY = 'openrouter:models:v1';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -79,7 +82,7 @@ export async function loadModels(platform?: PlatformLike): Promise<ModelEntry[]>
 		await writeKV(kv, entry);
 		return models;
 	} catch (err) {
-		console.warn('[openrouter] loadModels falling back to snapshot:', (err as Error).message);
+		log.warn({ err: (err as Error).message }, 'loadModels falling back to snapshot');
 		return fallbackModels;
 	}
 }

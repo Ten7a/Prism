@@ -8,13 +8,16 @@ import { isUniqueViolation } from '$lib/server/tokens/grant';
 import { sendMail } from '$lib/server/email/resend';
 import { receiptTemplate } from '$lib/server/email/templates/receipt';
 import type { RequestHandler } from './$types';
+import { baseLog } from '$lib/server/log';
+
+const log = baseLog.child({ mod: 'stripe-webhook' });
 
 async function creditPurchase(event: Stripe.Event): Promise<{ emailJob: Promise<void> | null }> {
 	const session = event.data.object as Stripe.Checkout.Session;
 	const userId = session.metadata?.userId;
 	const packSlug = session.metadata?.packSlug;
 	if (!userId || !packSlug) {
-		console.warn('[stripe webhook] checkout.session.completed missing metadata', event.id);
+		log.warn({ eventId: event.id }, 'checkout.session.completed missing metadata');
 		return { emailJob: null };
 	}
 
@@ -24,7 +27,7 @@ async function creditPurchase(event: Stripe.Event): Promise<{ emailJob: Promise<
 		.where(eq(tokenPack.slug, packSlug))
 		.limit(1);
 	if (!pack) {
-		console.warn('[stripe webhook] unknown pack slug', packSlug);
+		log.warn({ packSlug }, 'unknown pack slug');
 		return { emailJob: null };
 	}
 
@@ -52,7 +55,7 @@ async function creditPurchase(event: Stripe.Event): Promise<{ emailJob: Promise<
 		tokens: pack.tokens
 	});
 	const job = sendMail({ to: u.email, subject: tmpl.subject, html: tmpl.html, text: tmpl.text }).catch(
-		(err) => console.error('[stripe webhook] receipt email failed', err)
+		(err) => log.error({ err: (err as Error)?.message ?? String(err) }, 'receipt email failed')
 	);
 	return { emailJob: job };
 }
@@ -94,7 +97,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	try {
 		event = await stripe().webhooks.constructEventAsync(body, sig, secret);
 	} catch (err) {
-		console.warn('[stripe webhook] signature verification failed', err);
+		log.warn({ err: (err as Error)?.message ?? String(err) }, 'signature verification failed');
 		return new Response('bad signature', { status: 400 });
 	}
 

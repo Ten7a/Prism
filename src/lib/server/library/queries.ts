@@ -3,6 +3,9 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { generationJob, image } from '$lib/server/db/schema';
 import { storage } from '$lib/server/storage';
+import { baseLog } from '$lib/server/log';
+
+const log = baseLog.child({ mod: 'library' });
 
 export interface LibraryItem {
 	id: string;
@@ -178,7 +181,7 @@ export async function deleteImage(
 	try {
 		await storage(platform).delete([row.r2Key]);
 	} catch (err) {
-		console.warn('[library] orphan key:', row.r2Key, (err as Error).message);
+		log.warn({ r2Key: row.r2Key, err: (err as Error).message }, 'orphan key');
 	}
 
 	await db.delete(image).where(eq(image.id, id));

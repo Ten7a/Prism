@@ -1,3 +1,7 @@
+import { baseLog } from '$lib/server/log';
+
+const log = baseLog.child({ mod: 'notify' });
+
 export type JobEvent =
 	| { type: 'progress'; i: number; total: number }
 	| {
@@ -41,7 +45,7 @@ function deliverLocal(jobId: string, evt: JobEvent): void {
 		try {
 			cb(evt);
 		} catch (err) {
-			console.warn('[notify] subscriber threw:', (err as Error).message);
+			log.warn({ err: (err as Error).message }, 'subscriber threw');
 		}
 	}
 }
@@ -55,7 +59,7 @@ export async function publish(jobId: string, evt: JobEvent): Promise<void> {
 			await pgNotify(`job:${jobId}`, JSON.stringify(evt));
 		} catch (err) {
 			// LISTEN/NOTIFY is best-effort; in-mem delivery already succeeded.
-			console.warn('[notify] pg_notify failed:', (err as Error).message);
+			log.warn({ err: (err as Error).message }, 'pg_notify failed');
 		}
 	}
 }
