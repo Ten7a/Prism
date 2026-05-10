@@ -14,9 +14,10 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
 		const grant = grantDailyAllowanceIfDue(userId).catch((err) => {
 			console.error('[grant] failed', err);
 		});
-		const waitUntil = (event.platform as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined)
-			?.context?.waitUntil;
-		if (waitUntil) waitUntil(grant);
+		const ctx = (event.platform as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined)
+			?.context;
+		if (ctx?.waitUntil) ctx.waitUntil(grant);
+		else void grant;
 	}
 
 	return svelteKitHandler({ event, resolve, auth, building });

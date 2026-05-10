@@ -3,6 +3,7 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { hydrateConsentFromDocument } from '$lib/stores/consent';
+	import CookieBanner from '$lib/components/CookieBanner.svelte';
 
 	let { children } = $props();
 
@@ -31,12 +32,15 @@
 
 	<footer class="shell-footer">
 		<div class="legal">
-			<a href="/privacy">Privacy</a>
-			<a href="/terms">Terms</a>
+			<a href="/legal/privacy">Privacy</a>
+			<a href="/legal/terms">Terms</a>
+			<a href="/account/privacy">Your data</a>
 		</div>
 		<div class="copy">© Prism</div>
 	</footer>
 </div>
+
+<CookieBanner />
 
 <div class="scanlines"></div>
 <div class="vignette"></div>
