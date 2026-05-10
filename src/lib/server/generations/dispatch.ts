@@ -50,6 +50,8 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 		}
 		userId = job.userId;
 
+		if (job.status === 'cancelled') return;
+
 		await db
 			.update(generationJob)
 			.set({ status: 'running' })
@@ -86,6 +88,14 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 
 		const shardPromise = async (i: number): Promise<ShardOk | ShardErr> => {
 			try {
+				const [snapshot] = await db
+					.select({ status: generationJob.status })
+					.from(generationJob)
+					.where(eq(generationJob.id, jobId))
+					.limit(1);
+				if (snapshot?.status === 'cancelled') {
+					return { ok: false, i, code: 'cancelled', costTokens: perShardTokens };
+				}
 				const generated = await generateOne(model, {
 					prompt: job.prompt,
 					quality,
@@ -123,6 +133,12 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 
 		const successes = settled.filter((r): r is ShardOk => r.ok);
 		const failures = settled.filter((r): r is ShardErr => !r.ok);
+
+		// If the user cancelled mid-flight, the cancel endpoint already wrote the refund and
+		// published the cancellation event. Exit without touching status or publishing again.
+		if (failures.some((f) => f.code === 'cancelled')) {
+			return;
+		}
 
 		// Publish image events for successes (with signed URLs).
 		const allImages: FinishJobImage[] = [];

@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import { desc, eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db/index';
 import { generationJob } from '$lib/server/db/schema';
 import { createJob } from '$lib/server/db/queries/jobs';
@@ -8,6 +9,9 @@ import { getBalance } from '$lib/server/db/queries/balance';
 import { getModel } from '$lib/server/openrouter/registry';
 import { estimateCost } from '$lib/server/openrouter/pricing';
 import { dispatch } from '$lib/server/generations/dispatch';
+import { getLimiter, parseRateSpec } from '$lib/server/ratelimit';
+import { isBlocked } from '$lib/server/abuse/blocklist';
+import { checkPrompt } from '$lib/server/moderation/check';
 import type { Quality, Ratio } from '$lib/server/openrouter/types';
 
 const ALLOWED_RATIOS: Ratio[] = ['1:1', '4:3', '3:4', '16:9', '9:16'];
@@ -56,6 +60,25 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 
 	const body = (await request.json().catch(() => ({}))) as GenerateBody;
 	const input = validate(body);
+
+	const limiter = getLimiter(platform);
+	const genSpec = parseRateSpec(env.RATE_LIMIT_GENERATIONS, { capacity: 30, refillPerSec: 30 / 3600 });
+	const limited = await limiter.hit(`gen:${locals.user.id}`, genSpec);
+	if (!limited.allowed) {
+		return json(
+			{ code: 'rate_limited', retryAfterSec: limited.retryAfterSec ?? 1 },
+			{ status: 429, headers: { 'Retry-After': String(limited.retryAfterSec ?? 1) } }
+		);
+	}
+
+	const block = isBlocked(input.prompt);
+	if (block.blocked) {
+		return json({ code: 'prompt_blocked', categories: ['blocklist'] }, { status: 422 });
+	}
+	const moderation = await checkPrompt(input.prompt);
+	if (moderation.flagged) {
+		return json({ code: 'prompt_blocked', categories: moderation.categories }, { status: 422 });
+	}
 
 	const modelEntry = await getModel(input.model, platform);
 	if (!modelEntry) throw error(400, 'unknown model');
