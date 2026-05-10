@@ -61,6 +61,15 @@ export class S3HttpStore implements ObjectStore {
 		);
 	}
 
+	async head(key: string): Promise<{ exists: boolean }> {
+		const res = await this.aws.fetch(this.url(key), { method: 'HEAD' });
+		if (res.status === 404) return { exists: false };
+		if (!res.ok) {
+			throw new Error(`S3 HEAD ${key} failed: ${res.status}`);
+		}
+		return { exists: true };
+	}
+
 	async signedUrl(key: string, expiresInSec: number): Promise<string> {
 		const url = new URL(this.url(key));
 		url.searchParams.set('X-Amz-Expires', String(expiresInSec));

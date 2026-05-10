@@ -1,5 +1,8 @@
 import { env } from '$env/dynamic/private';
 import { OpenRouterError, orFetch } from '../openrouter/client';
+import { baseLog } from '../log';
+
+const log = baseLog.child({ mod: 'moderation' });
 
 export interface ModerationResult {
 	flagged: boolean;
@@ -121,7 +124,7 @@ export async function checkPrompt(prompt: string): Promise<ModerationResult> {
 		const direct = await callModerationsApi(model, prompt);
 		result = direct ?? (await callChatModeration(model, prompt));
 	} catch (err) {
-		console.warn('[moderation] check failed, allowing prompt:', (err as Error).message);
+		log.warn({ err: (err as Error).message }, 'check failed, allowing prompt');
 		return { flagged: false, categories: [] };
 	}
 	cachePut(key, result);

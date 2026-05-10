@@ -24,6 +24,11 @@ export class R2BindingStore implements ObjectStore {
 		await this.bucket.delete(keys);
 	}
 
+	async head(key: string): Promise<{ exists: boolean }> {
+		const obj = await this.bucket.head(key);
+		return { exists: obj !== null };
+	}
+
 	// R2 bindings don't expose presigning — fall back to SigV4 over HTTP using the same creds.
 	async signedUrl(key: string, expiresInSec: number): Promise<string> {
 		this.s3 ??= new S3HttpStore(this.s3Opts);
