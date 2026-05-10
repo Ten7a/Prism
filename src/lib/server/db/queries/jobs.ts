@@ -95,6 +95,39 @@ export async function refundShards(
 	});
 }
 
+export async function cancelJob(
+	jobId: string,
+	userId: string
+): Promise<{ status: 'cancelled' | 'already_terminal' }> {
+	return db.transaction(async (tx) => {
+		const [job] = await tx
+			.select()
+			.from(generationJob)
+			.where(eq(generationJob.id, jobId))
+			.limit(1);
+		if (!job || job.userId !== userId) {
+			return { status: 'already_terminal' as const };
+		}
+		if (job.status === 'succeeded' || job.status === 'failed' || job.status === 'cancelled') {
+			return { status: 'already_terminal' as const };
+		}
+
+		await tx
+			.update(generationJob)
+			.set({ status: 'cancelled', finishedAt: new Date() })
+			.where(eq(generationJob.id, jobId));
+
+		await tx.insert(tokenLedger).values({
+			userId: job.userId,
+			delta: job.costEstimate,
+			reason: 'generation_cancel',
+			jobId: job.id
+		});
+
+		return { status: 'cancelled' as const };
+	});
+}
+
 export async function failJob(jobId: string, errorCode: string): Promise<void> {
 	await db.transaction(async (tx) => {
 		const [job] = await tx

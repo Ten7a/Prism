@@ -27,6 +27,7 @@ export const ledgerReason = pgEnum('ledger_reason', [
 	'pack_purchase',
 	'generation_debit',
 	'generation_refund',
+	'generation_cancel',
 	'admin_adjustment'
 ]);
 
