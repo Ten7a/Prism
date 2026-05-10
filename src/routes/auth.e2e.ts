@@ -18,9 +18,7 @@ test.describe('auth flow', () => {
 	async function waitForVerifyEmail(email: string, timeoutMs = 5000) {
 		const deadline = Date.now() + timeoutMs;
 		while (Date.now() < deadline) {
-			const files = (await readdir(OUTBOX!)).filter((f) =>
-				f.includes(encodeURIComponent(email))
-			);
+			const files = (await readdir(OUTBOX!)).filter((f) => f.includes(encodeURIComponent(email)));
 			for (const f of files) {
 				const body = JSON.parse(await readFile(join(OUTBOX!, f), 'utf-8'));
 				const m = body.text.match(/https?:\/\/\S+/);

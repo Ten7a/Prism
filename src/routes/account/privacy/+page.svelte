@@ -44,11 +44,7 @@
 				<span>Necessary <em>(always on)</em></span>
 			</label>
 			<label class="row">
-				<input
-					type="checkbox"
-					name="analytics"
-					checked={data.current?.analytics ?? false}
-				/>
+				<input type="checkbox" name="analytics" checked={data.current?.analytics ?? false} />
 				<span>Analytics</span>
 			</label>
 			<label class="row">
@@ -94,7 +90,10 @@
 
 	<section class="card">
 		<h2>Export my data</h2>
-		<p>Download a JSON file containing your account, generations, images, ledger, and consent records.</p>
+		<p>
+			Download a JSON file containing your account, generations, images, ledger, and consent
+			records.
+		</p>
 		<button type="button" class="primary" onclick={exportData} disabled={exporting}>
 			{exporting ? 'Preparing…' : 'Download export'}
 		</button>

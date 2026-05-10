@@ -54,18 +54,20 @@ Wrap the SvelteKit web app in a Capacitor shell for iOS and Android, swap web St
 
 ```ts
 test('isIOS routes purchases through RevenueCat', async () => {
-  vi.stubGlobal('window', { Capacitor: { getPlatform: () => 'ios' } });
-  const buy = createBilling();
-  await buy.purchase('starter');
-  expect(rcMock.purchasePackage).toHaveBeenCalledWith(expect.objectContaining({ identifier: 'prism.tokens.starter' }));
-  expect(stripeMock.createSession).not.toHaveBeenCalled();
+	vi.stubGlobal('window', { Capacitor: { getPlatform: () => 'ios' } });
+	const buy = createBilling();
+	await buy.purchase('starter');
+	expect(rcMock.purchasePackage).toHaveBeenCalledWith(
+		expect.objectContaining({ identifier: 'prism.tokens.starter' })
+	);
+	expect(stripeMock.createSession).not.toHaveBeenCalled();
 });
 
 test('web routes purchases through Stripe', async () => {
-  vi.stubGlobal('window', { Capacitor: undefined });
-  const buy = createBilling();
-  await buy.purchase('starter');
-  expect(stripeMock.createSession).toHaveBeenCalled();
+	vi.stubGlobal('window', { Capacitor: undefined });
+	const buy = createBilling();
+	await buy.purchase('starter');
+	expect(stripeMock.createSession).toHaveBeenCalled();
 });
 ```
 

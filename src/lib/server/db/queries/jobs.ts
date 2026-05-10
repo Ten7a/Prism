@@ -81,11 +81,7 @@ export async function finishJob(
 	});
 }
 
-export async function refundShards(
-	jobId: string,
-	userId: string,
-	tokens: number
-): Promise<void> {
+export async function refundShards(jobId: string, userId: string, tokens: number): Promise<void> {
 	if (tokens <= 0) return;
 	await db.insert(tokenLedger).values({
 		userId,
@@ -100,11 +96,7 @@ export async function cancelJob(
 	userId: string
 ): Promise<{ status: 'cancelled' | 'already_terminal' }> {
 	return db.transaction(async (tx) => {
-		const [job] = await tx
-			.select()
-			.from(generationJob)
-			.where(eq(generationJob.id, jobId))
-			.limit(1);
+		const [job] = await tx.select().from(generationJob).where(eq(generationJob.id, jobId)).limit(1);
 		if (!job || job.userId !== userId) {
 			return { status: 'already_terminal' as const };
 		}

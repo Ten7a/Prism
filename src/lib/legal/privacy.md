@@ -13,8 +13,8 @@ and UK GDPR.
   (optional), email verification status.
 - **Generation**: prompts you submit, models selected, generated image bytes,
   reference images you upload, timestamps, dimensions, MIME types.
-- **Billing**: Stripe customer id, transaction ids and pack/price ids — *we
-  never see your card data*.
+- **Billing**: Stripe customer id, transaction ids and pack/price ids — _we
+  never see your card data_.
 - **Consent**: a record of each time you accept or change cookie preferences
   (necessary, analytics, ads), with the policy version and timestamp.
 - **Operational**: IP address (only for rate limiting; not retained after 30
@@ -22,24 +22,24 @@ and UK GDPR.
 
 ## 2. Why we collect it (legal bases)
 
-| Purpose                    | Legal basis (GDPR Art. 6)            |
-| -------------------------- | ------------------------------------ |
-| Provide the service        | Contract — Art. 6(1)(b)              |
-| Bill you for tokens        | Contract — Art. 6(1)(b)              |
-| Prevent abuse              | Legitimate interest — Art. 6(1)(f)   |
-| Show ads (optional)        | Consent — Art. 6(1)(a)               |
-| Analytics (optional)       | Consent — Art. 6(1)(a)               |
-| Send transactional email   | Contract — Art. 6(1)(b)              |
+| Purpose                  | Legal basis (GDPR Art. 6)          |
+| ------------------------ | ---------------------------------- |
+| Provide the service      | Contract — Art. 6(1)(b)            |
+| Bill you for tokens      | Contract — Art. 6(1)(b)            |
+| Prevent abuse            | Legitimate interest — Art. 6(1)(f) |
+| Show ads (optional)      | Consent — Art. 6(1)(a)             |
+| Analytics (optional)     | Consent — Art. 6(1)(a)             |
+| Send transactional email | Contract — Art. 6(1)(b)            |
 
 ## 3. Sub-processors
 
-| Vendor         | Purpose                | Country |
-| -------------- | ---------------------- | ------- |
-| OpenRouter     | AI model routing       | US      |
-| Cloudflare R2  | Image storage          | EU/US   |
-| Stripe         | Payments               | US/IE   |
-| Resend         | Transactional email    | US      |
-| Database host  | Database               | TBD     |
+| Vendor        | Purpose             | Country |
+| ------------- | ------------------- | ------- |
+| OpenRouter    | AI model routing    | US      |
+| Cloudflare R2 | Image storage       | EU/US   |
+| Stripe        | Payments            | US/IE   |
+| Resend        | Transactional email | US      |
+| Database host | Database            | TBD     |
 
 ## 4. Retention
 

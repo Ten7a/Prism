@@ -73,7 +73,12 @@
 </script>
 
 {#if visible}
-	<div class="banner glass" role="dialog" aria-label="Cookie preferences" data-testid="cookie-banner">
+	<div
+		class="banner glass"
+		role="dialog"
+		aria-label="Cookie preferences"
+		data-testid="cookie-banner"
+	>
 		<div class="copy">
 			<strong>We use cookies.</strong>
 			<span>

@@ -1,12 +1,6 @@
 // Word-boundary blocklist. Use regex (not String.includes) so that benign words
 // containing the same letters do not falsely match.
-const BLOCKED_TERMS = [
-	'csam',
-	'childporn',
-	'lolicon',
-	'shotacon',
-	'bestiality'
-];
+const BLOCKED_TERMS = ['csam', 'childporn', 'lolicon', 'shotacon', 'bestiality'];
 
 const BLOCKED_REGEXES = BLOCKED_TERMS.map((t) => new RegExp(`\\b${escape(t)}\\b`, 'i'));
 

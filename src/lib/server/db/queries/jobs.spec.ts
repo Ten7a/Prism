@@ -14,7 +14,9 @@ const baseJobInput = {
 describe('jobs', () => {
 	test('createJob debits and links ledger row to job atomically', async () => {
 		const u = await seedUser();
-		await insertLedger(u.id, +50, 'pack_purchase', { stripeEventId: `evt_seed_${crypto.randomUUID()}` });
+		await insertLedger(u.id, +50, 'pack_purchase', {
+			stripeEventId: `evt_seed_${crypto.randomUUID()}`
+		});
 
 		const job = await createJob({ userId: u.id, costEstimate: 5, ...baseJobInput });
 
@@ -24,7 +26,9 @@ describe('jobs', () => {
 
 	test('failJob refunds the estimate', async () => {
 		const u = await seedUser();
-		await insertLedger(u.id, +50, 'pack_purchase', { stripeEventId: `evt_fail_${crypto.randomUUID()}` });
+		await insertLedger(u.id, +50, 'pack_purchase', {
+			stripeEventId: `evt_fail_${crypto.randomUUID()}`
+		});
 		const job = await createJob({ userId: u.id, costEstimate: 5, ...baseJobInput });
 		expect(await getBalance(u.id)).toBe(45);
 
@@ -34,7 +38,9 @@ describe('jobs', () => {
 
 	test('finishJob marks job succeeded and records images', async () => {
 		const u = await seedUser();
-		await insertLedger(u.id, +50, 'pack_purchase', { stripeEventId: `evt_finish_${crypto.randomUUID()}` });
+		await insertLedger(u.id, +50, 'pack_purchase', {
+			stripeEventId: `evt_finish_${crypto.randomUUID()}`
+		});
 		const job = await createJob({ userId: u.id, costEstimate: 5, ...baseJobInput });
 
 		await finishJob(

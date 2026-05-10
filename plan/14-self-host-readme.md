@@ -166,18 +166,18 @@ SvelteKit 2 · Svelte 5 · Tailwind 4 · Drizzle · Postgres · Better Auth · O
      postgres:
        image: postgres:17-alpine
        environment: { POSTGRES_USER: prism, POSTGRES_PASSWORD: prism, POSTGRES_DB: prism }
-       volumes: ["postgres_data:/var/lib/postgresql/data"]
-       healthcheck: { test: ["CMD", "pg_isready", "-U", "prism"], interval: 5s }
+       volumes: ['postgres_data:/var/lib/postgresql/data']
+       healthcheck: { test: ['CMD', 'pg_isready', '-U', 'prism'], interval: 5s }
      app:
        build: .
        env_file: .env
-       ports: ["3000:3000"]
+       ports: ['3000:3000']
        depends_on:
          postgres: { condition: service_healthy }
      mailcatcher:
        image: dockage/mailcatcher
-       ports: ["1080:1080", "1025:1025"]
-       profiles: ["dev"]
+       ports: ['1080:1080', '1025:1025']
+       profiles: ['dev']
    volumes: { postgres_data: {} }
    ```
 
@@ -222,9 +222,9 @@ SvelteKit 2 · Svelte 5 · Tailwind 4 · Drizzle · Postgres · Better Auth · O
 
 ```ts
 test('docker compose up reaches /healthz', async () => {
-  await sh('docker compose up -d --build');
-  await waitFor(() => fetch('http://localhost:3000/api/healthz').then(r => r.ok), 60_000);
-  await sh('docker compose down -v');
+	await sh('docker compose up -d --build');
+	await waitFor(() => fetch('http://localhost:3000/api/healthz').then((r) => r.ok), 60_000);
+	await sh('docker compose down -v');
 });
 ```
 

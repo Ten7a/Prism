@@ -24,11 +24,11 @@ When something breaks in production, the operator needs to find it fast. Add str
 
 ```ts
 export interface Logger {
-  debug(obj: object, msg?: string): void;
-  info(obj: object, msg?: string): void;
-  warn(obj: object, msg?: string): void;
-  error(obj: object, msg?: string): void;
-  child(bindings: object): Logger;
+	debug(obj: object, msg?: string): void;
+	info(obj: object, msg?: string): void;
+	warn(obj: object, msg?: string): void;
+	error(obj: object, msg?: string): void;
+	child(bindings: object): Logger;
 }
 ```
 
@@ -46,25 +46,29 @@ export interface Logger {
 
    ```ts
    export const handle: Handle = async ({ event, resolve }) => {
-     const requestId = event.request.headers.get('x-request-id') ?? crypto.randomUUID();
-     const start = Date.now();
-     event.locals.log = baseLog.child({ requestId, path: event.url.pathname, method: event.request.method });
-     event.setHeaders({ 'x-request-id': requestId });
-     try {
-       const res = await resolve(event);
-       event.locals.log.info({ status: res.status, ms: Date.now() - start }, 'req');
-       return res;
-     } catch (e) {
-       event.locals.log.error({ err: serialiseError(e) }, 'unhandled');
-       reportError(e, { requestId });
-       throw e;
-     }
+   	const requestId = event.request.headers.get('x-request-id') ?? crypto.randomUUID();
+   	const start = Date.now();
+   	event.locals.log = baseLog.child({
+   		requestId,
+   		path: event.url.pathname,
+   		method: event.request.method
+   	});
+   	event.setHeaders({ 'x-request-id': requestId });
+   	try {
+   		const res = await resolve(event);
+   		event.locals.log.info({ status: res.status, ms: Date.now() - start }, 'req');
+   		return res;
+   	} catch (e) {
+   		event.locals.log.error({ err: serialiseError(e) }, 'unhandled');
+   		reportError(e, { requestId });
+   		throw e;
+   	}
    };
 
    export const handleError: HandleServerError = ({ error, event }) => {
-     event.locals?.log?.error({ err: serialiseError(error) }, 'server-error');
-     reportError(error, { requestId: event.locals?.requestId });
-     return { message: 'Internal error', requestId: event.locals?.requestId };
+   	event.locals?.log?.error({ err: serialiseError(error) }, 'server-error');
+   	reportError(error, { requestId: event.locals?.requestId });
+   	return { message: 'Internal error', requestId: event.locals?.requestId };
    };
    ```
 
@@ -81,22 +85,22 @@ export interface Logger {
 
 ```ts
 test('emits JSON line with bindings + msg', () => {
-  const out = capture(() => baseLog.info({ a: 1 }, 'hello'));
-  const parsed = JSON.parse(out);
-  expect(parsed).toMatchObject({ level: 'info', msg: 'hello', a: 1 });
+	const out = capture(() => baseLog.info({ a: 1 }, 'hello'));
+	const parsed = JSON.parse(out);
+	expect(parsed).toMatchObject({ level: 'info', msg: 'hello', a: 1 });
 });
 
 test('child merges bindings; never mutates parent', () => {
-  const c = baseLog.child({ userId: 'u1' });
-  const out = capture(() => c.info({}, 'x'));
-  expect(JSON.parse(out)).toMatchObject({ userId: 'u1' });
-  expect(capture(() => baseLog.info({}, 'x'))).not.toContain('u1');
+	const c = baseLog.child({ userId: 'u1' });
+	const out = capture(() => c.info({}, 'x'));
+	expect(JSON.parse(out)).toMatchObject({ userId: 'u1' });
+	expect(capture(() => baseLog.info({}, 'x'))).not.toContain('u1');
 });
 
 test('respects LOG_LEVEL=warn — info is dropped', () => {
-  process.env.LOG_LEVEL = 'warn';
-  expect(capture(() => baseLog.info({}, 'x'))).toBe('');
-  expect(capture(() => baseLog.warn({}, 'x'))).not.toBe('');
+	process.env.LOG_LEVEL = 'warn';
+	expect(capture(() => baseLog.info({}, 'x'))).toBe('');
+	expect(capture(() => baseLog.warn({}, 'x'))).not.toBe('');
 });
 ```
 
@@ -104,15 +108,15 @@ test('respects LOG_LEVEL=warn — info is dropped', () => {
 
 ```ts
 test('attaches x-request-id header to response', async () => {
-  const res = await app.fetch('/');
-  expect(res.headers.get('x-request-id')).toMatch(/^[0-9a-f-]{36}$/);
+	const res = await app.fetch('/');
+	expect(res.headers.get('x-request-id')).toMatch(/^[0-9a-f-]{36}$/);
 });
 
 test('failing route logs error with the same requestId', async () => {
-  const log = installLogSpy();
-  const res = await app.fetch('/api/__throw');
-  const reqId = res.headers.get('x-request-id');
-  expect(log.records.find(r => r.level === 'error' && r.requestId === reqId)).toBeTruthy();
+	const log = installLogSpy();
+	const res = await app.fetch('/api/__throw');
+	const reqId = res.headers.get('x-request-id');
+	expect(log.records.find((r) => r.level === 'error' && r.requestId === reqId)).toBeTruthy();
 });
 ```
 
@@ -120,16 +124,16 @@ test('failing route logs error with the same requestId', async () => {
 
 ```ts
 test('healthz returns ok in dev', async ({ request }) => {
-  const r = await request.get('/api/healthz');
-  expect(r.status()).toBe(200);
-  expect((await r.json()).db).toBe('ok');
+	const r = await request.get('/api/healthz');
+	expect(r.status()).toBe(200);
+	expect((await r.json()).db).toBe('ok');
 });
 
 test('metrics requires bearer token', async ({ request }) => {
-  expect((await request.get('/api/metrics')).status()).toBe(401);
-  const ok = await request.get('/api/metrics', { headers: { authorization: 'Bearer test-token' } });
-  expect(ok.status()).toBe(200);
-  expect(await ok.text()).toContain('prism_http_requests_total');
+	expect((await request.get('/api/metrics')).status()).toBe(401);
+	const ok = await request.get('/api/metrics', { headers: { authorization: 'Bearer test-token' } });
+	expect(ok.status()).toBe(200);
+	expect(await ok.text()).toContain('prism_http_requests_total');
 });
 ```
 

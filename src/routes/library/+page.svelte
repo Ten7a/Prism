@@ -19,9 +19,7 @@
 		loading = true;
 		errMsg = null;
 		try {
-			const res = await fetch(
-				`/api/library?cursor=${encodeURIComponent(cursor)}&limit=24`
-			);
+			const res = await fetch(`/api/library?cursor=${encodeURIComponent(cursor)}&limit=24`);
 			if (!res.ok) {
 				errMsg = `error ${res.status}`;
 				return;

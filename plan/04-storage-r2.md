@@ -2,7 +2,7 @@
 
 ## Goal
 
-Stand up the storage layer for Prism: a thin R2 client that works against a Worker R2 binding *and* an HTTP S3 endpoint (so self-hosters with `adapter-node` can use any S3-compatible store), an authenticated reference-image upload endpoint, and signed-URL helpers for serving generated images.
+Stand up the storage layer for Prism: a thin R2 client that works against a Worker R2 binding _and_ an HTTP S3 endpoint (so self-hosters with `adapter-node` can use any S3-compatible store), an authenticated reference-image upload endpoint, and signed-URL helpers for serving generated images.
 
 ## Touches
 
@@ -25,10 +25,14 @@ Stand up the storage layer for Prism: a thin R2 client that works against a Work
 
 ```ts
 export interface ObjectStore {
-  put(key: string, body: ArrayBuffer | ReadableStream, opts: { contentType: string }): Promise<void>;
-  delete(keys: string[]): Promise<void>;
-  signedUrl(key: string, expiresInSec: number): Promise<string>;
-  publicUrl?(key: string): string;   // when R2_PUBLIC_BASE_URL is set
+	put(
+		key: string,
+		body: ArrayBuffer | ReadableStream,
+		opts: { contentType: string }
+	): Promise<void>;
+	delete(keys: string[]): Promise<void>;
+	signedUrl(key: string, expiresInSec: number): Promise<string>;
+	publicUrl?(key: string): string; // when R2_PUBLIC_BASE_URL is set
 }
 ```
 
@@ -61,10 +65,10 @@ export interface ObjectStore {
 
 ```ts
 test('upload key includes only the validated extension', () => {
-  expect(uploadKey('user_1', 'image/png')).toMatch(/^uploads\/user_1\/[0-9a-f-]{36}\.png$/);
+	expect(uploadKey('user_1', 'image/png')).toMatch(/^uploads\/user_1\/[0-9a-f-]{36}\.png$/);
 });
 test('rejects path-traversal-shaped extensions', () => {
-  expect(() => uploadKey('user_1', 'image/png\0../evil')).toThrow();
+	expect(() => uploadKey('user_1', 'image/png\0../evil')).toThrow();
 });
 ```
 
@@ -72,12 +76,12 @@ test('rejects path-traversal-shaped extensions', () => {
 
 ```ts
 test('PUT signs requests with SigV4', async () => {
-  await driver.put('uploads/x.png', new Uint8Array([1]), { contentType: 'image/png' });
-  expect(lastReq().headers.get('authorization')).toMatch(/^AWS4-HMAC-SHA256/);
+	await driver.put('uploads/x.png', new Uint8Array([1]), { contentType: 'image/png' });
+	expect(lastReq().headers.get('authorization')).toMatch(/^AWS4-HMAC-SHA256/);
 });
 test('signedUrl includes X-Amz-Expires=300', async () => {
-  const url = await driver.signedUrl('uploads/x.png', 300);
-  expect(url).toContain('X-Amz-Expires=300');
+	const url = await driver.signedUrl('uploads/x.png', 300);
+	expect(url).toContain('X-Amz-Expires=300');
 });
 ```
 
@@ -85,23 +89,29 @@ test('signedUrl includes X-Amz-Expires=300', async () => {
 
 ```ts
 test('reference-image upload happy path', async ({ page, request }) => {
-  await loginAs(page, 'e2e@prism.test');
-  const res = await request.post('/api/uploads', { multipart: { file: { name: 'a.png', mimeType: 'image/png', buffer: pngBytes } } });
-  expect(res.status()).toBe(200);
-  const { key, url } = await res.json();
-  expect(key).toMatch(/^uploads\//);
-  expect(await (await fetch(url)).status).toBe(200);
+	await loginAs(page, 'e2e@prism.test');
+	const res = await request.post('/api/uploads', {
+		multipart: { file: { name: 'a.png', mimeType: 'image/png', buffer: pngBytes } }
+	});
+	expect(res.status()).toBe(200);
+	const { key, url } = await res.json();
+	expect(key).toMatch(/^uploads\//);
+	expect(await (await fetch(url)).status).toBe(200);
 });
 
 test('rejects 11MB upload', async ({ request }) => {
-  const big = Buffer.alloc(11 * 1024 * 1024, 0);
-  const res = await request.post('/api/uploads', { multipart: { file: { name: 'big.png', mimeType: 'image/png', buffer: big } } });
-  expect(res.status()).toBe(413);
+	const big = Buffer.alloc(11 * 1024 * 1024, 0);
+	const res = await request.post('/api/uploads', {
+		multipart: { file: { name: 'big.png', mimeType: 'image/png', buffer: big } }
+	});
+	expect(res.status()).toBe(413);
 });
 
 test('rejects non-image mime', async ({ request }) => {
-  const res = await request.post('/api/uploads', { multipart: { file: { name: 'a.txt', mimeType: 'text/plain', buffer: Buffer.from('hi') } } });
-  expect(res.status()).toBe(415);
+	const res = await request.post('/api/uploads', {
+		multipart: { file: { name: 'a.txt', mimeType: 'text/plain', buffer: Buffer.from('hi') } }
+	});
+	expect(res.status()).toBe(415);
 });
 ```
 

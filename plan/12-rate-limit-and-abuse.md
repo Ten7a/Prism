@@ -24,18 +24,21 @@ Stop runaway costs and abuse: per-IP and per-user rate limits, a moderation pre-
 
 ## Limits (initial)
 
-| Scope                 | Limit            | Notes                                           |
-| --------------------- | ---------------- | ----------------------------------------------- |
-| Anon `/api/*`         | 60 req / minute  | by `cf-connecting-ip`                            |
-| User `/api/*`         | 600 req / hour   | by `userId`                                      |
-| `/api/generations`    | 30 / hour / user | hard limit independent of token balance         |
-| `/api/uploads`        | 30 / hour / user | already mentioned in step 04 — formalised here  |
+| Scope              | Limit            | Notes                                          |
+| ------------------ | ---------------- | ---------------------------------------------- |
+| Anon `/api/*`      | 60 req / minute  | by `cf-connecting-ip`                          |
+| User `/api/*`      | 600 req / hour   | by `userId`                                    |
+| `/api/generations` | 30 / hour / user | hard limit independent of token balance        |
+| `/api/uploads`     | 30 / hour / user | already mentioned in step 04 — formalised here |
 
 ## Token-bucket sketch
 
 ```ts
 export interface Limiter {
-  hit(key: string, opts: { capacity: number; refillPerSec: number }): Promise<{ allowed: boolean; retryAfterSec?: number }>;
+	hit(
+		key: string,
+		opts: { capacity: number; refillPerSec: number }
+	): Promise<{ allowed: boolean; retryAfterSec?: number }>;
 }
 ```
 
@@ -62,22 +65,22 @@ KV impl stores `{ tokens, lastMs }` JSON; atomic enough at this scale because we
 
 ```ts
 test('token bucket allows up to capacity', async () => {
-  const l = createMemoryLimiter();
-  for (let i = 0; i < 5; i++) {
-    expect((await l.hit('k', { capacity: 5, refillPerSec: 0 })).allowed).toBe(true);
-  }
-  expect((await l.hit('k', { capacity: 5, refillPerSec: 0 })).allowed).toBe(false);
+	const l = createMemoryLimiter();
+	for (let i = 0; i < 5; i++) {
+		expect((await l.hit('k', { capacity: 5, refillPerSec: 0 })).allowed).toBe(true);
+	}
+	expect((await l.hit('k', { capacity: 5, refillPerSec: 0 })).allowed).toBe(false);
 });
 
 test('refills over time', async () => {
-  const l = createMemoryLimiter();
-  for (let i = 0; i < 5; i++) await l.hit('k', { capacity: 5, refillPerSec: 5 });
-  vi.advanceTimersByTime(1000);
-  expect((await l.hit('k', { capacity: 5, refillPerSec: 5 })).allowed).toBe(true);
+	const l = createMemoryLimiter();
+	for (let i = 0; i < 5; i++) await l.hit('k', { capacity: 5, refillPerSec: 5 });
+	vi.advanceTimersByTime(1000);
+	expect((await l.hit('k', { capacity: 5, refillPerSec: 5 })).allowed).toBe(true);
 });
 
 test('429 includes Retry-After', async () => {
-  // … hooks.server integration test
+	// … hooks.server integration test
 });
 ```
 
@@ -85,14 +88,16 @@ test('429 includes Retry-After', async () => {
 
 ```ts
 test('caches by prompt hash', async () => {
-  await checkPrompt('cat');
-  await checkPrompt('cat');
-  expect(msw.calls('/moderations')).toBe(1);
+	await checkPrompt('cat');
+	await checkPrompt('cat');
+	expect(msw.calls('/moderations')).toBe(1);
 });
 
 test('returns flagged=true for synthetic violation', async () => {
-  msw.use(http.post('*/moderations', () => HttpResponse.json({ flagged: true, categories: ['violence'] })));
-  expect((await checkPrompt('xx')).flagged).toBe(true);
+	msw.use(
+		http.post('*/moderations', () => HttpResponse.json({ flagged: true, categories: ['violence'] }))
+	);
+	expect((await checkPrompt('xx')).flagged).toBe(true);
 });
 ```
 
@@ -100,24 +105,28 @@ test('returns flagged=true for synthetic violation', async () => {
 
 ```ts
 test('flooding /api/generations triggers 429', async ({ request }) => {
-  await loginAs(request, 'e2e@prism.test');
-  let rejected = 0;
-  await Promise.all([...Array(50)].map(async () => {
-    const r = await request.post('/api/generations', { data: validPayload });
-    if (r.status() === 429) rejected++;
-  }));
-  expect(rejected).toBeGreaterThan(0);
+	await loginAs(request, 'e2e@prism.test');
+	let rejected = 0;
+	await Promise.all(
+		[...Array(50)].map(async () => {
+			const r = await request.post('/api/generations', { data: validPayload });
+			if (r.status() === 429) rejected++;
+		})
+	);
+	expect(rejected).toBeGreaterThan(0);
 });
 
 test('blocked prompt is rejected without debit', async ({ request }) => {
-  const before = await getBalanceFor('e2e@prism.test');
-  const r = await request.post('/api/generations', { data: { ...validPayload, prompt: BLOCKED_TEST_FIXTURE } });
-  expect(r.status()).toBe(422);
-  expect(await getBalanceFor('e2e@prism.test')).toBe(before);
+	const before = await getBalanceFor('e2e@prism.test');
+	const r = await request.post('/api/generations', {
+		data: { ...validPayload, prompt: BLOCKED_TEST_FIXTURE }
+	});
+	expect(r.status()).toBe(422);
+	expect(await getBalanceFor('e2e@prism.test')).toBe(before);
 });
 
 test('cancel running job refunds tokens', async ({ request }) => {
-  // … create job that takes time, cancel mid-flight, check refund
+	// … create job that takes time, cancel mid-flight, check refund
 });
 ```
 

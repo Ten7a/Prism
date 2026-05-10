@@ -89,7 +89,7 @@ ToS gets a parallel structure (acceptable use, IP ownership of generations, inde
 
 1. Build `CookieBanner.svelte` and mount it from `+layout.svelte` (z-index above scanlines).
 2. `POST /api/consent` validates payload, upserts a `consent_record` row keyed by `userId` (or `anon_id` cookie if signed out), returns 204.
-3. Banner saves to cookie *and* fires the API call when authenticated.
+3. Banner saves to cookie _and_ fires the API call when authenticated.
 4. `versions.ts` exports `POLICY_VERSION = '1.0'` — banner re-prompts when this changes.
 5. Render legal pages from markdown via a server load + `marked`. Add a "What changed in this version?" diff link at the top.
 6. `/account/privacy` shows: current consent state (toggleable), full consent history, **Export my data** button → triggers `/api/account/export` (returns JSON `{ user, ledger, jobs, images: [{id, key, …}], consents }`), **Delete my account** button → reuses the action from step 02.
@@ -101,18 +101,18 @@ ToS gets a parallel structure (acceptable use, IP ownership of generations, inde
 
 ```ts
 test('GET /api/consent returns server-side state for signed-in user', async () => {
-  const u = await seedUser();
-  await upsertConsent({ userId: u.id, version: '1.0', analytics: true, ads: false });
-  const res = await get('/api/consent', { user: u });
-  expect(await res.json()).toMatchObject({ analytics: true, ads: false });
+	const u = await seedUser();
+	await upsertConsent({ userId: u.id, version: '1.0', analytics: true, ads: false });
+	const res = await get('/api/consent', { user: u });
+	expect(await res.json()).toMatchObject({ analytics: true, ads: false });
 });
 
 test('upsert keyed by anon cookie for unauthenticated visitors', async () => {
-  await upsertConsent({ anonId: 'anon_abc', version: '1.0', analytics: false, ads: false });
-  // re-visit and update
-  await upsertConsent({ anonId: 'anon_abc', version: '1.0', analytics: true, ads: true });
-  const rows = await listConsents({ anonId: 'anon_abc' });
-  expect(rows).toHaveLength(2); // history preserved
+	await upsertConsent({ anonId: 'anon_abc', version: '1.0', analytics: false, ads: false });
+	// re-visit and update
+	await upsertConsent({ anonId: 'anon_abc', version: '1.0', analytics: true, ads: true });
+	const rows = await listConsents({ anonId: 'anon_abc' });
+	expect(rows).toHaveLength(2); // history preserved
 });
 ```
 
@@ -120,29 +120,29 @@ test('upsert keyed by anon cookie for unauthenticated visitors', async () => {
 
 ```ts
 test('banner appears for new visitor and disappears after Accept all', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.getByText(/we use cookies/i)).toBeVisible();
-  await page.getByRole('button', { name: /accept all/i }).click();
-  await expect(page.getByText(/we use cookies/i)).not.toBeVisible();
-  await page.reload();
-  await expect(page.getByText(/we use cookies/i)).not.toBeVisible();
+	await page.goto('/');
+	await expect(page.getByText(/we use cookies/i)).toBeVisible();
+	await page.getByRole('button', { name: /accept all/i }).click();
+	await expect(page.getByText(/we use cookies/i)).not.toBeVisible();
+	await page.reload();
+	await expect(page.getByText(/we use cookies/i)).not.toBeVisible();
 });
 
 test('Customize → Save necessary-only does not load ads/analytics', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: /customize/i }).click();
-  await page.getByRole('button', { name: /save preferences/i }).click();
-  await expect(page.locator('script[src*="pagead2"]')).toHaveCount(0);
+	await page.goto('/');
+	await page.getByRole('button', { name: /customize/i }).click();
+	await page.getByRole('button', { name: /save preferences/i }).click();
+	await expect(page.locator('script[src*="pagead2"]')).toHaveCount(0);
 });
 
 test('export endpoint returns user payload', async ({ page, request }) => {
-  await loginAs(page, 'e2e@prism.test');
-  const res = await request.get('/api/account/export');
-  expect(res.status()).toBe(200);
-  const body = await res.json();
-  expect(body).toHaveProperty('user.email', 'e2e@prism.test');
-  expect(body).toHaveProperty('ledger');
-  expect(body).toHaveProperty('jobs');
+	await loginAs(page, 'e2e@prism.test');
+	const res = await request.get('/api/account/export');
+	expect(res.status()).toBe(200);
+	const body = await res.json();
+	expect(body).toHaveProperty('user.email', 'e2e@prism.test');
+	expect(body).toHaveProperty('ledger');
+	expect(body).toHaveProperty('jobs');
 });
 ```
 

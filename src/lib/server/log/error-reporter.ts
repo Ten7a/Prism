@@ -62,7 +62,9 @@ export async function reportError(err: unknown, ctx?: Record<string, unknown>): 
 	}
 }
 
-function parseStack(stack: string): Array<{ function?: string; filename?: string; lineno?: number }> {
+function parseStack(
+	stack: string
+): Array<{ function?: string; filename?: string; lineno?: number }> {
 	return stack
 		.split('\n')
 		.slice(1)

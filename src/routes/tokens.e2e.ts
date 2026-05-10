@@ -11,10 +11,7 @@ test.describe('tokens', () => {
 			'href',
 			/\/api\/billing\/checkout\?pack=starter/
 		);
-		await expect(page.getByRole('link', { name: /buy 250/i })).toHaveAttribute(
-			'href',
-			/pack=pro/
-		);
+		await expect(page.getByRole('link', { name: /buy 250/i })).toHaveAttribute('href', /pack=pro/);
 		await expect(page.getByRole('link', { name: /buy 600/i })).toHaveAttribute(
 			'href',
 			/pack=studio/
@@ -40,9 +37,7 @@ test.describe('tokens — daily grant', () => {
 	async function waitForVerifyEmail(email: string, timeoutMs = 5000): Promise<string> {
 		const deadline = Date.now() + timeoutMs;
 		while (Date.now() < deadline) {
-			const files = (await readdir(OUTBOX!)).filter((f) =>
-				f.includes(encodeURIComponent(email))
-			);
+			const files = (await readdir(OUTBOX!)).filter((f) => f.includes(encodeURIComponent(email)));
 			for (const f of files) {
 				const body = JSON.parse(await readFile(join(OUTBOX!, f), 'utf-8'));
 				const m = body.text.match(/https?:\/\/\S+/);

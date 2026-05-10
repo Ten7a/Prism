@@ -48,9 +48,7 @@ export const baseLog: Logger = make({});
 
 export function serialiseError(e: unknown): { name: string; message: string; stack?: string } {
 	if (e instanceof Error) {
-		const stack = e.stack
-			? e.stack.split('\n').slice(0, 20).join('\n')
-			: undefined;
+		const stack = e.stack ? e.stack.split('\n').slice(0, 20).join('\n') : undefined;
 		return { name: e.name, message: e.message, stack };
 	}
 	return { name: 'NonError', message: String(e) };

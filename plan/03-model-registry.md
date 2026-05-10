@@ -20,12 +20,12 @@ Build a registry that enumerates every OpenRouter model with image output, norma
 
 ## Pricing shapes (from research)
 
-| Shape          | Models                                              | Calc                                                |
-| -------------- | --------------------------------------------------- | --------------------------------------------------- |
-| per-image flat | `bytedance-seed/seedream-4.5`                       | `imagePrice * batch`                                |
-| per-image tier | `sourceful/riverflow-v2-{fast,pro}`                 | `tierPrice(quality) * batch`                        |
-| per-MP         | `black-forest-labs/flux.2-{pro,max,klein-4b}`       | `(firstMP + (mp-1)*subsequentMP) * batch`           |
-| per-token      | `google/gemini-*-image*`, `openai/gpt-*-image*`     | `inToks*inPrice + outToks*outPrice` (estimate from quality+batch) |
+| Shape          | Models                                          | Calc                                                              |
+| -------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
+| per-image flat | `bytedance-seed/seedream-4.5`                   | `imagePrice * batch`                                              |
+| per-image tier | `sourceful/riverflow-v2-{fast,pro}`             | `tierPrice(quality) * batch`                                      |
+| per-MP         | `black-forest-labs/flux.2-{pro,max,klein-4b}`   | `(firstMP + (mp-1)*subsequentMP) * batch`                         |
+| per-token      | `google/gemini-*-image*`, `openai/gpt-*-image*` | `inToks*inPrice + outToks*outPrice` (estimate from quality+batch) |
 
 Internal-token conversion: `tokens = ceil(usdCost / USD_PER_TOKEN)` where `USD_PER_TOKEN = 0.01` (1 internal token ≈ $0.01). All published cost tables use this constant; changing it is a versioned migration.
 
@@ -36,13 +36,13 @@ export type Quality = '1k' | '2k' | '4k';
 export type Ratio = '1:1' | '4:3' | '3:4' | '16:9' | '9:16';
 
 export interface ModelEntry {
-  id: string;                    // 'google/gemini-2.5-flash-image'
-  displayName: string;
-  capabilities: { textToImage: boolean; imageToImage: boolean; edit: boolean };
-  supportedQualities: Quality[];
-  supportedRatios: Ratio[];
-  pricing: PricingShape;         // tagged union
-  fetchedAt: number;             // ms
+	id: string; // 'google/gemini-2.5-flash-image'
+	displayName: string;
+	capabilities: { textToImage: boolean; imageToImage: boolean; edit: boolean };
+	supportedQualities: Quality[];
+	supportedRatios: Ratio[];
+	pricing: PricingShape; // tagged union
+	fetchedAt: number; // ms
 }
 ```
 
@@ -66,22 +66,23 @@ export interface ModelEntry {
 
 ```ts
 test('per-image flat: seedream batch=4 = 4 * tokens(0.04 USD)', () => {
-  const m = mock({ shape: 'per-image-flat', usd: 0.04 });
-  expect(estimateCost(m, { quality: '1k', ratio: '1:1', batch: 4 }).internalTokens)
-    .toBe(Math.ceil(0.04 * 4 / 0.01));
+	const m = mock({ shape: 'per-image-flat', usd: 0.04 });
+	expect(estimateCost(m, { quality: '1k', ratio: '1:1', batch: 4 }).internalTokens).toBe(
+		Math.ceil((0.04 * 4) / 0.01)
+	);
 });
 
 test('per-MP: flux.2-pro at 2k (≈4MP) batch=1 = first 0.03 + 3*0.015', () => {
-  const m = mock({ shape: 'per-mp', firstUsd: 0.03, subsequentUsd: 0.015 });
-  const out = estimateCost(m, { quality: '2k', ratio: '1:1', batch: 1 });
-  expect(out.usdEstimate).toBeCloseTo(0.03 + 3 * 0.015, 5);
+	const m = mock({ shape: 'per-mp', firstUsd: 0.03, subsequentUsd: 0.015 });
+	const out = estimateCost(m, { quality: '2k', ratio: '1:1', batch: 1 });
+	expect(out.usdEstimate).toBeCloseTo(0.03 + 3 * 0.015, 5);
 });
 
 test('per-token: gemini flash uses output-token estimate that scales with quality', () => {
-  const m = mock({ shape: 'per-token', inUsd: 0.0000003, outUsd: 0.0000025 });
-  const c1 = estimateCost(m, { quality: '1k', ratio: '1:1', batch: 1 });
-  const c4 = estimateCost(m, { quality: '4k', ratio: '1:1', batch: 1 });
-  expect(c4.usdEstimate).toBeGreaterThan(c1.usdEstimate);
+	const m = mock({ shape: 'per-token', inUsd: 0.0000003, outUsd: 0.0000025 });
+	const c1 = estimateCost(m, { quality: '1k', ratio: '1:1', batch: 1 });
+	const c4 = estimateCost(m, { quality: '4k', ratio: '1:1', batch: 1 });
+	expect(c4.usdEstimate).toBeGreaterThan(c1.usdEstimate);
 });
 ```
 
@@ -89,16 +90,16 @@ test('per-token: gemini flash uses output-token estimate that scales with qualit
 
 ```ts
 test('caches catalogue 24h', async () => {
-  const a = await loadModels();
-  const b = await loadModels();
-  expect(msw.calls('/models')).toBe(1);
-  expect(a).toEqual(b);
+	const a = await loadModels();
+	const b = await loadModels();
+	expect(msw.calls('/models')).toBe(1);
+	expect(a).toEqual(b);
 });
 
 test('falls back to snapshot when API errors', async () => {
-  msw.use(http.get('*/models', () => HttpResponse.error()));
-  const m = await loadModels();
-  expect(m.find(x => x.id === 'google/gemini-2.5-flash-image')).toBeTruthy();
+	msw.use(http.get('*/models', () => HttpResponse.error()));
+	const m = await loadModels();
+	expect(m.find((x) => x.id === 'google/gemini-2.5-flash-image')).toBeTruthy();
 });
 ```
 

@@ -18,7 +18,9 @@ export async function orFetch(path: string, init: RequestInit = {}): Promise<Res
 		throw new OpenRouterError('OPENROUTER_API_KEY is not set');
 	}
 	const baseUrl = (env.OPENROUTER_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
-	const url = path.startsWith('http') ? path : `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+	const url = path.startsWith('http')
+		? path
+		: `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
 	const headers = new Headers(init.headers);
 	headers.set('Authorization', `Bearer ${apiKey}`);
 	if (env.ORIGIN) headers.set('HTTP-Referer', env.ORIGIN);

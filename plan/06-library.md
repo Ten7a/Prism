@@ -57,29 +57,30 @@ This keeps pagination stable across deletes (deleted rows don't shift the window
 
 ```ts
 test('cursor pagination is stable across deletes', async () => {
-  const u = await seedUser();
-  const ids = await seedImages(u.id, 30); // ordered by createdAt desc, id desc
-  const page1 = await listImages(u.id, { limit: 10 });
-  expect(page1.items.map(i => i.id)).toEqual(ids.slice(0, 10));
-  await deleteImage(u.id, ids[2]); // delete an item already returned
-  const page2 = await listImages(u.id, { cursor: page1.nextCursor, limit: 10 });
-  expect(page2.items.map(i => i.id)).toEqual(ids.slice(10, 20));
+	const u = await seedUser();
+	const ids = await seedImages(u.id, 30); // ordered by createdAt desc, id desc
+	const page1 = await listImages(u.id, { limit: 10 });
+	expect(page1.items.map((i) => i.id)).toEqual(ids.slice(0, 10));
+	await deleteImage(u.id, ids[2]); // delete an item already returned
+	const page2 = await listImages(u.id, { cursor: page1.nextCursor, limit: 10 });
+	expect(page2.items.map((i) => i.id)).toEqual(ids.slice(10, 20));
 });
 
 test('cannot read or delete another user image', async () => {
-  const a = await seedUser(), b = await seedUser();
-  const [imgA] = await seedImages(a.id, 1);
-  await expect(getImage(b.id, imgA)).rejects.toMatchObject({ status: 404 });
-  await expect(deleteImage(b.id, imgA)).rejects.toMatchObject({ status: 404 });
+	const a = await seedUser(),
+		b = await seedUser();
+	const [imgA] = await seedImages(a.id, 1);
+	await expect(getImage(b.id, imgA)).rejects.toMatchObject({ status: 404 });
+	await expect(deleteImage(b.id, imgA)).rejects.toMatchObject({ status: 404 });
 });
 
 test('delete removes both DB row and R2 object', async () => {
-  const u = await seedUser();
-  const [id] = await seedImages(u.id, 1);
-  const before = mockStorage.deletedKeys.length;
-  await deleteImage(u.id, id);
-  expect(mockStorage.deletedKeys.length).toBe(before + 1);
-  expect(await getImage(u.id, id).catch(e => e.status)).toBe(404);
+	const u = await seedUser();
+	const [id] = await seedImages(u.id, 1);
+	const before = mockStorage.deletedKeys.length;
+	await deleteImage(u.id, id);
+	expect(mockStorage.deletedKeys.length).toBe(before + 1);
+	expect(await getImage(u.id, id).catch((e) => e.status)).toBe(404);
 });
 ```
 
@@ -87,16 +88,16 @@ test('delete removes both DB row and R2 object', async () => {
 
 ```ts
 test('library shows generated images and supports infinite scroll', async ({ page }) => {
-  await loginAs(page, 'e2e@prism.test');
-  await seedJobsAndImages(30);
-  await page.goto('/library');
-  await expect(page.locator('[data-testid="image-tile"]')).toHaveCount(24);
-  await page.mouse.wheel(0, 5000);
-  await expect(page.locator('[data-testid="image-tile"]')).toHaveCount(30);
+	await loginAs(page, 'e2e@prism.test');
+	await seedJobsAndImages(30);
+	await page.goto('/library');
+	await expect(page.locator('[data-testid="image-tile"]')).toHaveCount(24);
+	await page.mouse.wheel(0, 5000);
+	await expect(page.locator('[data-testid="image-tile"]')).toHaveCount(30);
 });
 
 test('detail page deletes image and returns to grid', async ({ page }) => {
-  // …
+	// …
 });
 ```
 

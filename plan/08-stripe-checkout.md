@@ -53,27 +53,27 @@ Take real money: a Stripe Checkout flow for token packs, an idempotent webhook t
 
 ```ts
 test('valid signed event credits exactly once', async () => {
-  const u = await seedUser();
-  await seedPacks();
-  const event = signedEvent('checkout.session.completed', {
-    id: 'evt_test_1',
-    metadata: { userId: u.id, packSlug: 'starter' }
-  });
-  await POST({ request: event.req });
-  expect(await getBalance(u.id)).toBe(100);
-  // replay the same event:
-  await POST({ request: event.req });
-  expect(await getBalance(u.id)).toBe(100); // unchanged
+	const u = await seedUser();
+	await seedPacks();
+	const event = signedEvent('checkout.session.completed', {
+		id: 'evt_test_1',
+		metadata: { userId: u.id, packSlug: 'starter' }
+	});
+	await POST({ request: event.req });
+	expect(await getBalance(u.id)).toBe(100);
+	// replay the same event:
+	await POST({ request: event.req });
+	expect(await getBalance(u.id)).toBe(100); // unchanged
 });
 
 test('invalid signature returns 400', async () => {
-  const tampered = await tamperSignature(validEvent());
-  const res = await POST({ request: tampered });
-  expect(res.status).toBe(400);
+	const tampered = await tamperSignature(validEvent());
+	const res = await POST({ request: tampered });
+	expect(res.status).toBe(400);
 });
 
 test('charge.refunded reverses the credit', async () => {
-  // … credit 100 via evt_a, then refund via evt_b → balance drops by 100
+	// … credit 100 via evt_a, then refund via evt_b → balance drops by 100
 });
 ```
 
@@ -81,10 +81,10 @@ test('charge.refunded reverses the credit', async () => {
 
 ```ts
 test('idempotent: running twice does not create duplicate prices', async () => {
-  await syncPrices();
-  await syncPrices();
-  expect(stripeMock.calls('POST', '/v1/products')).toHaveLength(4); // PACKS.length
-  expect(stripeMock.calls('POST', '/v1/prices')).toHaveLength(4);
+	await syncPrices();
+	await syncPrices();
+	expect(stripeMock.calls('POST', '/v1/products')).toHaveLength(4); // PACKS.length
+	expect(stripeMock.calls('POST', '/v1/prices')).toHaveLength(4);
 });
 ```
 
@@ -92,14 +92,14 @@ test('idempotent: running twice does not create duplicate prices', async () => {
 
 ```ts
 test('starter pack purchase flow with Stripe test mode', async ({ page }) => {
-  await loginAs(page, 'e2e@prism.test');
-  await page.goto('/pricing');
-  await page.getByRole('link', { name: /buy 100/i }).click();
-  await page.waitForURL(/checkout\.stripe\.com/);
-  await fillStripeTestCard(page); // helper
-  await page.waitForURL(/billing\/success/);
-  await page.goto('/account');
-  await expect(page.getByTestId('balance')).toContainText('100');
+	await loginAs(page, 'e2e@prism.test');
+	await page.goto('/pricing');
+	await page.getByRole('link', { name: /buy 100/i }).click();
+	await page.waitForURL(/checkout\.stripe\.com/);
+	await fillStripeTestCard(page); // helper
+	await page.waitForURL(/billing\/success/);
+	await page.goto('/account');
+	await expect(page.getByTestId('balance')).toContainText('100');
 });
 ```
 

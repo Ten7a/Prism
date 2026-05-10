@@ -107,13 +107,15 @@ test('insufficient balance returns 402 without inserting a job', async () => {
 
 ```ts
 test('end-to-end with mocked OpenRouter', async ({ page }) => {
-  await loginAs(page, 'e2e@prism.test');
-  await page.goto('/generate');
-  await page.getByPlaceholder('Describe an image').fill('a quiet city street at dawn');
-  await page.getByRole('combobox', { name: 'Model' }).selectOption('google/gemini-2.5-flash-image');
-  await page.getByRole('button', { name: /generate/i }).click();
-  await expect(page.locator('[data-testid="job-progress"]')).toBeVisible();
-  await expect(page.locator('img[data-testid="generated"]').first()).toBeVisible({ timeout: 10_000 });
+	await loginAs(page, 'e2e@prism.test');
+	await page.goto('/generate');
+	await page.getByPlaceholder('Describe an image').fill('a quiet city street at dawn');
+	await page.getByRole('combobox', { name: 'Model' }).selectOption('google/gemini-2.5-flash-image');
+	await page.getByRole('button', { name: /generate/i }).click();
+	await expect(page.locator('[data-testid="job-progress"]')).toBeVisible();
+	await expect(page.locator('img[data-testid="generated"]').first()).toBeVisible({
+		timeout: 10_000
+	});
 });
 ```
 

@@ -62,7 +62,10 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 	const input = validate(body);
 
 	const limiter = getLimiter(platform);
-	const genSpec = parseRateSpec(env.RATE_LIMIT_GENERATIONS, { capacity: 30, refillPerSec: 30 / 3600 });
+	const genSpec = parseRateSpec(env.RATE_LIMIT_GENERATIONS, {
+		capacity: 30,
+		refillPerSec: 30 / 3600
+	});
 	const limited = await limiter.hit(`gen:${locals.user.id}`, genSpec);
 	if (!limited.allowed) {
 		return json(

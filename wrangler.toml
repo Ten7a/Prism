@@ -1,0 +1,24 @@
+name = "prism"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".svelte-kit/cloudflare"
+binding = "ASSETS"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "prism"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "<replace-with-kv-id>"
+
+[[kv_namespaces]]
+binding = "MODEL_CACHE"
+id = "<replace-with-kv-id>"
+
+[[hyperdrive]]
+binding = "DB"
+id = "<replace-with-hyperdrive-id>"

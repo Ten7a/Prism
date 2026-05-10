@@ -6,7 +6,9 @@ describe('balance', () => {
 	test('balance equals signed sum of ledger deltas', async () => {
 		const u = await seedUser();
 		await insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' });
-		await insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: `evt_1_${crypto.randomUUID()}` });
+		await insertLedger(u.id, +100, 'pack_purchase', {
+			stripeEventId: `evt_1_${crypto.randomUUID()}`
+		});
 		await insertLedger(u.id, -8, 'generation_debit');
 		expect(await getBalance(u.id)).toBe(102);
 	});
@@ -19,9 +21,7 @@ describe('balance', () => {
 	test('daily_grant insert is idempotent per UTC day', async () => {
 		const u = await seedUser();
 		await insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' });
-		await expect(
-			insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' })
-		).rejects.toThrow();
+		await expect(insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' })).rejects.toThrow();
 	});
 
 	test('daily_grant allows different days for the same user', async () => {

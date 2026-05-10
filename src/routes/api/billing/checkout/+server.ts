@@ -28,10 +28,7 @@ async function ensureCustomer(
 ): Promise<string> {
 	if (existing) return existing;
 	const customer = await stripe().customers.create({ email, metadata: { userId } });
-	await db
-		.update(userTable)
-		.set({ stripeCustomerId: customer.id })
-		.where(eq(userTable.id, userId));
+	await db.update(userTable).set({ stripeCustomerId: customer.id }).where(eq(userTable.id, userId));
 	return customer.id;
 }
 

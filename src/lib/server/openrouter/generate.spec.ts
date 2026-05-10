@@ -105,9 +105,7 @@ describe('parseImages', () => {
 			choices: [
 				{
 					message: {
-						images: [
-							{ image_url: { url: `data:image/png;base64,${png1x1}` } }
-						]
+						images: [{ image_url: { url: `data:image/png;base64,${png1x1}` } }]
 					}
 				}
 			]

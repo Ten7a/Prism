@@ -23,85 +23,125 @@ Add the domain tables Prism needs (token ledger, generation jobs, images, packs,
 ```ts
 // src/lib/server/db/schema.ts
 import {
-  pgTable, uuid, text, integer, bigint, timestamp,
-  jsonb, pgEnum, index, uniqueIndex
+	pgTable,
+	uuid,
+	text,
+	integer,
+	bigint,
+	timestamp,
+	jsonb,
+	pgEnum,
+	index,
+	uniqueIndex
 } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 
 export const jobStatus = pgEnum('job_status', [
-  'queued', 'running', 'succeeded', 'failed', 'cancelled'
+	'queued',
+	'running',
+	'succeeded',
+	'failed',
+	'cancelled'
 ]);
 
 export const ledgerReason = pgEnum('ledger_reason', [
-  'daily_grant', 'pack_purchase', 'generation_debit',
-  'generation_refund', 'admin_adjustment'
+	'daily_grant',
+	'pack_purchase',
+	'generation_debit',
+	'generation_refund',
+	'admin_adjustment'
 ]);
 
-export const tokenLedger = pgTable('token_ledger', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  delta: integer('delta').notNull(),                 // signed
-  reason: ledgerReason('reason').notNull(),
-  jobId: uuid('job_id'),                             // soft FK to generationJob
-  stripeEventId: text('stripe_event_id'),            // idempotency key for webhooks
-  dailyGrantDay: text('daily_grant_day'),            // 'YYYY-MM-DD' UTC, for unique idx
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
-}, (t) => ({
-  userIdx: index().on(t.userId, t.createdAt),
-  uniqDailyGrant: uniqueIndex('uniq_daily_grant')
-    .on(t.userId, t.dailyGrantDay).where(sql`${t.reason} = 'daily_grant'`),
-  uniqStripeEvent: uniqueIndex('uniq_stripe_event').on(t.stripeEventId)
-}));
+export const tokenLedger = pgTable(
+	'token_ledger',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		delta: integer('delta').notNull(), // signed
+		reason: ledgerReason('reason').notNull(),
+		jobId: uuid('job_id'), // soft FK to generationJob
+		stripeEventId: text('stripe_event_id'), // idempotency key for webhooks
+		dailyGrantDay: text('daily_grant_day'), // 'YYYY-MM-DD' UTC, for unique idx
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(t) => ({
+		userIdx: index().on(t.userId, t.createdAt),
+		uniqDailyGrant: uniqueIndex('uniq_daily_grant')
+			.on(t.userId, t.dailyGrantDay)
+			.where(sql`${t.reason} = 'daily_grant'`),
+		uniqStripeEvent: uniqueIndex('uniq_stripe_event').on(t.stripeEventId)
+	})
+);
 
-export const generationJob = pgTable('generation_job', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  modelId: text('model_id').notNull(),
-  prompt: text('prompt').notNull(),
-  refImageKeys: jsonb('ref_image_keys').$type<string[]>().default([]).notNull(),
-  ratio: text('ratio').notNull(),                    // '1:1' | '16:9' | ...
-  quality: text('quality').notNull(),                // '1k' | '2k' | '4k'
-  batch: integer('batch').notNull().default(1),
-  status: jobStatus('status').notNull().default('queued'),
-  costEstimate: integer('cost_estimate').notNull(),  // tokens debited at start
-  costActual: integer('cost_actual'),                // tokens after success
-  errorCode: text('error_code'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  finishedAt: timestamp('finished_at', { withTimezone: true })
-}, (t) => ({ userCreated: index().on(t.userId, t.createdAt.desc()) }));
+export const generationJob = pgTable(
+	'generation_job',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		modelId: text('model_id').notNull(),
+		prompt: text('prompt').notNull(),
+		refImageKeys: jsonb('ref_image_keys').$type<string[]>().default([]).notNull(),
+		ratio: text('ratio').notNull(), // '1:1' | '16:9' | ...
+		quality: text('quality').notNull(), // '1k' | '2k' | '4k'
+		batch: integer('batch').notNull().default(1),
+		status: jobStatus('status').notNull().default('queued'),
+		costEstimate: integer('cost_estimate').notNull(), // tokens debited at start
+		costActual: integer('cost_actual'), // tokens after success
+		errorCode: text('error_code'),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+		finishedAt: timestamp('finished_at', { withTimezone: true })
+	},
+	(t) => ({ userCreated: index().on(t.userId, t.createdAt.desc()) })
+);
 
-export const image = pgTable('image', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  jobId: uuid('job_id').notNull().references(() => generationJob.id, { onDelete: 'cascade' }),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  r2Key: text('r2_key').notNull(),
-  width: integer('width').notNull(),
-  height: integer('height').notNull(),
-  mime: text('mime').notNull(),
-  bytes: bigint('bytes', { mode: 'number' }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
-}, (t) => ({ userCreated: index().on(t.userId, t.createdAt.desc()) }));
+export const image = pgTable(
+	'image',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		jobId: uuid('job_id')
+			.notNull()
+			.references(() => generationJob.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		r2Key: text('r2_key').notNull(),
+		width: integer('width').notNull(),
+		height: integer('height').notNull(),
+		mime: text('mime').notNull(),
+		bytes: bigint('bytes', { mode: 'number' }).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(t) => ({ userCreated: index().on(t.userId, t.createdAt.desc()) })
+);
 
 export const tokenPack = pgTable('token_pack', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  slug: text('slug').notNull().unique(),             // 'starter', 'pro', ...
-  name: text('name').notNull(),
-  tokens: integer('tokens').notNull(),
-  priceCents: integer('price_cents').notNull(),
-  stripePriceId: text('stripe_price_id').notNull().unique(),
-  active: boolean('active').notNull().default(true)
+	id: uuid('id').defaultRandom().primaryKey(),
+	slug: text('slug').notNull().unique(), // 'starter', 'pro', ...
+	name: text('name').notNull(),
+	tokens: integer('tokens').notNull(),
+	priceCents: integer('price_cents').notNull(),
+	stripePriceId: text('stripe_price_id').notNull().unique(),
+	active: boolean('active').notNull().default(true)
 });
 
-export const consentRecord = pgTable('consent_record', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }), // nullable for anon
-  anonId: text('anon_id'),                            // cookie id for pre-auth
-  version: text('version').notNull(),                 // policy version
-  necessary: boolean('necessary').notNull().default(true),
-  analytics: boolean('analytics').notNull().default(false),
-  ads: boolean('ads').notNull().default(false),
-  acceptedAt: timestamp('accepted_at', { withTimezone: true }).defaultNow().notNull()
-}, (t) => ({ userIdx: index().on(t.userId), anonIdx: index().on(t.anonId) }));
+export const consentRecord = pgTable(
+	'consent_record',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }), // nullable for anon
+		anonId: text('anon_id'), // cookie id for pre-auth
+		version: text('version').notNull(), // policy version
+		necessary: boolean('necessary').notNull().default(true),
+		analytics: boolean('analytics').notNull().default(false),
+		ads: boolean('ads').notNull().default(false),
+		acceptedAt: timestamp('accepted_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(t) => ({ userIdx: index().on(t.userId), anonIdx: index().on(t.anonId) })
+);
 
 export * from './auth.schema';
 ```
@@ -125,23 +165,25 @@ export * from './auth.schema';
 
 ```ts
 test('balance equals signed sum of ledger deltas', async () => {
-  const u = await seedUser();
-  await insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' });
-  await insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: 'evt_1' });
-  await insertLedger(u.id, -8, 'generation_debit');
-  expect(await getBalance(u.id)).toBe(102);
+	const u = await seedUser();
+	await insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' });
+	await insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: 'evt_1' });
+	await insertLedger(u.id, -8, 'generation_debit');
+	expect(await getBalance(u.id)).toBe(102);
 });
 
 test('daily_grant insert is idempotent per UTC day', async () => {
-  const u = await seedUser();
-  await insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' });
-  await expect(insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' })).rejects.toThrow();
+	const u = await seedUser();
+	await insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' });
+	await expect(insertLedger(u.id, +10, 'daily_grant', { day: '2026-05-09' })).rejects.toThrow();
 });
 
 test('stripe webhook idempotency: same event credits once', async () => {
-  const u = await seedUser();
-  await insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: 'evt_42' });
-  await expect(insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: 'evt_42' })).rejects.toThrow();
+	const u = await seedUser();
+	await insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: 'evt_42' });
+	await expect(
+		insertLedger(u.id, +100, 'pack_purchase', { stripeEventId: 'evt_42' })
+	).rejects.toThrow();
 });
 ```
 
@@ -149,15 +191,15 @@ test('stripe webhook idempotency: same event credits once', async () => {
 
 ```ts
 test('createJob debits and links ledger row to job atomically', async () => {
-  const u = await seedUser();
-  await insertLedger(u.id, +50, 'pack_purchase', { stripeEventId: 'evt_seed' });
-  const job = await createJob({ userId: u.id, prompt: 'cat', costEstimate: 5, /* … */ });
-  expect(await getBalance(u.id)).toBe(45);
-  expect(job.status).toBe('queued');
+	const u = await seedUser();
+	await insertLedger(u.id, +50, 'pack_purchase', { stripeEventId: 'evt_seed' });
+	const job = await createJob({ userId: u.id, prompt: 'cat', costEstimate: 5 /* … */ });
+	expect(await getBalance(u.id)).toBe(45);
+	expect(job.status).toBe('queued');
 });
 
 test('failJob refunds the estimate', async () => {
-  // … debit 5, fail, balance returns to original
+	// … debit 5, fail, balance returns to original
 });
 ```
 
