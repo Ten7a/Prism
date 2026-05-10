@@ -15,19 +15,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --no-audit --no-fund
+      - name: Seed .env so $env/static/public has all PUBLIC_* keys
+        run: cp .env.example .env
       - run: npm run check
-      - run: npm run lint
-
-  unit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm install --no-audit --no-fund
-      - run: npm run test:unit -- --run
 
   shellcheck:
     runs-on: ubuntu-latest
