@@ -1,7 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --include=dev
+RUN npm install --no-audit --no-fund --include=dev
 COPY . .
 RUN BUILD_TARGET=node npm run build && npm prune --omit=dev
 
