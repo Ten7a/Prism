@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import GenerationCard from '$lib/components/GenerationCard.svelte';
+	import { Button, Tag } from '$lib/ui';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -168,7 +169,7 @@
 
 <section class="generate">
 	<header class="page-head">
-		<span class="tag">/ generate</span>
+		<Tag>/ generate</Tag>
 		<span class="balance" data-testid="balance">{balance} tok</span>
 	</header>
 
@@ -246,9 +247,9 @@
 				≈ {estimate} tokens
 				{#if insufficient}<em class="low">(low balance)</em>{/if}
 			</span>
-			<button type="submit" disabled={!promptValid || insufficient || submitting}>
+			<Button type="submit" variant="primary" disabled={!promptValid || insufficient || submitting}>
 				{submitting ? 'submitting…' : 'generate'}
-			</button>
+			</Button>
 		</div>
 
 		{#if submitError}
@@ -454,23 +455,6 @@
 		font-style: normal;
 		color: #ff8b8b;
 		margin-left: 8px;
-	}
-	.actions button {
-		background: var(--color-fg);
-		color: #000;
-		font-family: var(--font-mono);
-		font-size: 12px;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		padding: 10px 22px;
-		border: 1px solid var(--color-fg);
-		cursor: pointer;
-	}
-	.actions button:disabled {
-		background: transparent;
-		color: var(--color-fg-30);
-		border-color: var(--color-rule);
-		cursor: not-allowed;
 	}
 	.err {
 		color: #ff8b8b;

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$lib/styles/auth.css';
 	import { enhance } from '$app/forms';
+	import { Button, Field, Tag } from '$lib/ui';
 
 	let { data, form } = $props();
 	const deleteForm = $derived(form as { error?: string } | null);
@@ -11,7 +12,7 @@
 
 <section class="account">
 	<header>
-		<span class="tag">Account</span>
+		<Tag>Account</Tag>
 		<h1>{data.email}</h1>
 		<p class="meta">
 			{data.emailVerified ? 'Verified' : 'Unverified'} · Balance
@@ -40,7 +41,7 @@
 			<h2>Receipts</h2>
 			{#if data.hasBilling}
 				<form method="POST" action="/api/billing/portal">
-					<button type="submit" class="danger-btn">Manage billing & receipts</button>
+					<Button type="submit" variant="primary">Manage billing & receipts</Button>
 				</form>
 			{:else}
 				<p class="muted">
@@ -53,26 +54,24 @@
 			<h2>Danger zone</h2>
 			<p class="muted">Delete your account and all data. This cannot be undone.</p>
 			{#if !confirming}
-				<button class="danger-btn" onclick={() => (confirming = true)}>Delete account</button>
+				<Button variant="danger" onclick={() => (confirming = true)}>Delete account</Button>
 			{:else}
 				{#if deleteForm?.error}<div class="auth-error">{deleteForm.error}</div>{/if}
 				<form method="POST" action="/account/delete" class="auth-form" use:enhance>
-					<label>
-						Confirm password
-						<input
-							type="password"
-							name="password"
-							autocomplete="current-password"
-							required
-						/>
-					</label>
+					<Field
+						label="Confirm password"
+						type="password"
+						name="password"
+						autocomplete="current-password"
+						required
+					/>
 					<div class="row">
-						<button type="submit" class="danger-btn">Permanently delete</button>
-						<button
+						<Button type="submit" variant="danger">Permanently delete</Button>
+						<Button
 							type="button"
-							class="ghost"
-							onclick={() => (confirming = false)}>Cancel</button
-						>
+							variant="ghost"
+							onclick={() => (confirming = false)}
+						>Cancel</Button>
 					</div>
 				</form>
 			{/if}
@@ -93,13 +92,6 @@
 		border-bottom: 1px solid var(--color-rule);
 		padding-bottom: 22px;
 		margin-bottom: 28px;
-	}
-
-	.tag {
-		font-size: 10px;
-		letter-spacing: 0.2em;
-		color: var(--color-fg-50);
-		text-transform: uppercase;
 	}
 
 	header h1 {
@@ -179,39 +171,9 @@
 		color: var(--color-fg-50);
 	}
 
-	.danger-btn {
-		background: #000;
-		color: var(--color-fg);
-		border: 1px solid var(--color-fg);
-		padding: 10px 14px;
-		font-family: var(--font-mono);
-		font-size: 11px;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		cursor: pointer;
-		margin-top: 12px;
-	}
-
-	.danger-btn:hover {
-		background: var(--color-fg);
-		color: #000;
-	}
-
 	.row {
 		display: flex;
 		gap: 8px;
 		margin-top: 8px;
-	}
-
-	.row .ghost {
-		background: transparent;
-		color: var(--color-fg-70);
-		border: 1px solid var(--color-rule);
-		padding: 10px 14px;
-		font-family: var(--font-mono);
-		font-size: 11px;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		cursor: pointer;
 	}
 </style>

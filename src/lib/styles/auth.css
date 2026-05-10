@@ -27,62 +27,6 @@
 	gap: 14px;
 }
 
-.auth-form label {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	font-size: 10px;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: var(--color-fg-70);
-}
-
-.auth-form input {
-	background: #000;
-	color: var(--color-fg);
-	border: 1px solid var(--color-rule);
-	padding: 10px 12px;
-	font-family: var(--font-mono);
-	font-size: 13px;
-	letter-spacing: 0;
-	text-transform: none;
-	border-radius: 0;
-	outline: none;
-}
-
-.auth-form input:focus {
-	border-color: var(--color-fg);
-}
-
-.auth-form button {
-	background: #000;
-	color: var(--color-fg);
-	border: 1px solid var(--color-fg);
-	padding: 11px 16px;
-	font-family: var(--font-mono);
-	font-size: 11px;
-	letter-spacing: 0.12em;
-	text-transform: uppercase;
-	cursor: pointer;
-	margin-top: 8px;
-}
-
-.auth-form button:hover {
-	background: var(--color-fg);
-	color: #000;
-}
-
-.auth-form button.ghost {
-	border-color: var(--color-rule);
-	color: var(--color-fg-70);
-}
-
-.auth-form button.ghost:hover {
-	background: transparent;
-	color: var(--color-fg);
-	border-color: var(--color-fg);
-}
-
 .auth-error {
 	border: 1px solid var(--color-rule);
 	padding: 10px 12px;
