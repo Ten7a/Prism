@@ -8,7 +8,9 @@ COPY . .
 ENV PUBLIC_ADSENSE_CLIENT_ID="" \
 	PUBLIC_ADSENSE_SLOT_LIBRARY_TOP="" \
 	PUBLIC_ADSENSE_SLOT_LANDING_FOOTER="" \
-	PUBLIC_APP_NAME="Prism"
+	PUBLIC_APP_NAME="Prism" \
+	DATABASE_URL="postgres://build:build@localhost:5432/build" \
+	BETTER_AUTH_SECRET="build-time-placeholder-not-used-at-runtime"
 RUN BUILD_TARGET=node npm run build && npm prune --omit=dev
 
 FROM node:22-alpine
