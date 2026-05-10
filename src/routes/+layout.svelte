@@ -4,6 +4,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { hydrateConsentFromDocument } from '$lib/stores/consent';
 	import CookieBanner from '$lib/components/CookieBanner.svelte';
+	import Toast from '$lib/ui/Toast.svelte';
 
 	let { children } = $props();
 
@@ -41,6 +42,7 @@
 </div>
 
 <CookieBanner />
+<Toast />
 
 <div class="scanlines"></div>
 <div class="vignette"></div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { RuleRow, Tag } from '$lib/ui';
 
 	let { data }: { data: PageData } = $props();
 
@@ -14,7 +15,7 @@
 
 <section class="pricing">
 	<header class="page-head">
-		<span class="tag">/ pricing</span>
+		<Tag>/ pricing</Tag>
 		<span class="meta">tokens · packs</span>
 	</header>
 
@@ -25,7 +26,7 @@
 
 	<div class="rows">
 		{#each data.packs as p (p.slug)}
-			<form method="POST" action="/api/billing/checkout" class="row">
+			{#snippet packLeft()}
 				<input type="hidden" name="pack" value={p.slug} />
 				<span class="label">
 					<span class="primary">Buy {p.tokens}</span>
@@ -33,9 +34,19 @@
 						<span class="sub">{p.note}</span>
 					{/if}
 				</span>
-				<span class="price">{usd(p.priceCents)}</span>
+			{/snippet}
+			{#snippet packCenter()}<span class="price">{usd(p.priceCents)}</span>{/snippet}
+			{#snippet packRight()}
 				<button type="submit" class="cta">checkout →</button>
-			</form>
+			{/snippet}
+			<RuleRow
+				as="form"
+				method="POST"
+				action="/api/billing/checkout"
+				left={packLeft}
+				center={packCenter}
+				right={packRight}
+			/>
 		{/each}
 	</div>
 
@@ -59,12 +70,6 @@
 		border-bottom: 1px solid var(--color-rule);
 		margin-bottom: 28px;
 	}
-	.tag {
-		font-size: 12px;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--color-fg);
-	}
 	.meta {
 		font-size: 11px;
 		letter-spacing: 0.12em;
@@ -81,24 +86,6 @@
 	.rows {
 		display: flex;
 		flex-direction: column;
-	}
-	.row {
-		display: grid;
-		grid-template-columns: 1fr auto auto;
-		align-items: baseline;
-		gap: 24px;
-		padding: 18px 0;
-		border-top: 1px solid var(--color-rule);
-		font-family: var(--font-mono);
-		color: var(--color-fg);
-		margin: 0;
-		transition: background 0.15s;
-	}
-	.row:last-child {
-		border-bottom: 1px solid var(--color-rule);
-	}
-	.row:hover {
-		background: rgba(255, 255, 255, 0.03);
 	}
 	.label {
 		display: flex;

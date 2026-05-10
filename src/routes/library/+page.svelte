@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import ImageTile from '$lib/components/ImageTile.svelte';
 	import AdSlot from '$lib/components/AdSlot.svelte';
+	import { Tag } from '$lib/ui';
 	import type { PageData } from './$types';
 	import type { LibraryItem } from '$lib/server/library/queries';
 
@@ -56,7 +57,7 @@
 
 <section class="library">
 	<header class="page-head">
-		<span class="tag">/ library</span>
+		<Tag>/ library</Tag>
 		<span class="count">{items.length}{cursor ? '+' : ''}</span>
 	</header>
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$lib/styles/auth.css';
 	import { enhance } from '$app/forms';
+	import { Button, Field } from '$lib/ui';
 
 	let { form } = $props();
 </script>
@@ -18,25 +19,24 @@
 	{:else}
 		{#if form?.error}<div class="auth-error">{form.error}</div>{/if}
 		<form method="POST" class="auth-form" use:enhance>
-			<label>
-				Name
-				<input type="text" name="name" autocomplete="name" value={form?.name ?? ''} />
-			</label>
-			<label>
-				Email
-				<input
-					type="email"
-					name="email"
-					autocomplete="email"
-					required
-					value={form?.email ?? ''}
-				/>
-			</label>
-			<label>
-				Password
-				<input type="password" name="password" autocomplete="new-password" required minlength="8" />
-			</label>
-			<button type="submit">Sign up</button>
+			<Field label="Name" name="name" autocomplete="name" value={form?.name ?? ''} />
+			<Field
+				label="Email"
+				type="email"
+				name="email"
+				autocomplete="email"
+				required
+				value={form?.email ?? ''}
+			/>
+			<Field
+				label="Password"
+				type="password"
+				name="password"
+				autocomplete="new-password"
+				required
+				minlength={8}
+			/>
+			<Button type="submit" variant="primary">Sign up</Button>
 		</form>
 	{/if}
 
