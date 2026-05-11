@@ -70,6 +70,7 @@ type ButtonSize = 'sm' | 'md';
 ## Tests
 
 Each component gets `*.spec.ts` with:
+
 - a render test asserting key roles/text,
 - one variant-specific test,
 - one a11y test (role/aria assertion).
@@ -79,34 +80,34 @@ Examples:
 ```ts
 // Button.spec.ts
 test('primary renders with role=button and announces label', async () => {
-  const screen = render(Button, { props: { children: 'Go', variant: 'primary' } });
-  await expect.element(screen.getByRole('button', { name: 'Go' })).toBeVisible();
+	const screen = render(Button, { props: { children: 'Go', variant: 'primary' } });
+	await expect.element(screen.getByRole('button', { name: 'Go' })).toBeVisible();
 });
 
 test('disabled prevents click event', async () => {
-  let clicked = 0;
-  const screen = render(Button, { props: { disabled: true, onclick: () => clicked++ } });
-  await screen.getByRole('button').click();
-  expect(clicked).toBe(0);
+	let clicked = 0;
+	const screen = render(Button, { props: { disabled: true, onclick: () => clicked++ } });
+	await screen.getByRole('button').click();
+	expect(clicked).toBe(0);
 });
 
 // Modal.spec.ts
 test('ESC closes', async () => {
-  const onClose = vi.fn();
-  render(Modal, { props: { open: true, onClose } });
-  await fireEvent.keyDown(document, { key: 'Escape' });
-  expect(onClose).toHaveBeenCalled();
+	const onClose = vi.fn();
+	render(Modal, { props: { open: true, onClose } });
+	await fireEvent.keyDown(document, { key: 'Escape' });
+	expect(onClose).toHaveBeenCalled();
 });
 
 test('focus is trapped', async () => {
-  // … assert tabbing past the last focusable element wraps to the first
+	// … assert tabbing past the last focusable element wraps to the first
 });
 
 // Field.spec.ts
 test('error slot is announced via aria-describedby', async () => {
-  const screen = render(Field, { props: { label: 'Email', error: 'Required' } });
-  const input = screen.getByLabelText('Email');
-  expect(input.getAttribute('aria-describedby')).toBeTruthy();
+	const screen = render(Field, { props: { label: 'Email', error: 'Required' } });
+	const input = screen.getByLabelText('Email');
+	expect(input.getAttribute('aria-describedby')).toBeTruthy();
 });
 ```
 
@@ -114,15 +115,15 @@ test('error slot is announced via aria-describedby', async () => {
 
 ```ts
 test('design gallery renders in dev', async ({ page }) => {
-  await page.goto('/design');
-  await expect(page.getByRole('heading', { name: /Buttons/ })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Modal/ })).toBeVisible();
+	await page.goto('/design');
+	await expect(page.getByRole('heading', { name: /Buttons/ })).toBeVisible();
+	await expect(page.getByRole('heading', { name: /Modal/ })).toBeVisible();
 });
 
 test('design gallery is 404 in prod build', async ({ page }) => {
-  // run against a `BUILD_TARGET=node npm run build:node && node build` instance
-  const res = await page.goto('/design');
-  expect(res?.status()).toBe(404);
+	// run against a `BUILD_TARGET=node npm run build:node && node build` instance
+	const res = await page.goto('/design');
+	expect(res?.status()).toBe(404);
 });
 ```
 

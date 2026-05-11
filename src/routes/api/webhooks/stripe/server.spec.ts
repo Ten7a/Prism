@@ -2,7 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from 'vit
 import Stripe from 'stripe';
 
 vi.mock('$env/dynamic/private', async () => {
-	const actual = await vi.importActual<typeof import('$env/dynamic/private')>('$env/dynamic/private');
+	const actual =
+		await vi.importActual<typeof import('$env/dynamic/private')>('$env/dynamic/private');
 	return {
 		env: {
 			...actual.env,
@@ -99,7 +100,11 @@ describe('stripe webhook', () => {
 
 	test('invalid signature returns 400', async () => {
 		const { POST } = await import('./+server');
-		const body = JSON.stringify({ id: 'evt_x', type: 'checkout.session.completed', data: { object: {} } });
+		const body = JSON.stringify({
+			id: 'evt_x',
+			type: 'checkout.session.completed',
+			data: { object: {} }
+		});
 		const req = new Request('http://localhost/api/webhooks/stripe', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json', 'stripe-signature': 't=1,v1=deadbeef' },

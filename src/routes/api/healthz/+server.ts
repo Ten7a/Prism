@@ -9,7 +9,10 @@ const HEALTH_KEY = '_healthz/probe';
 
 function sanitise(err: unknown): string {
 	const msg = err instanceof Error ? err.message : String(err);
-	return msg.split('\n')[0].replace(/https?:\/\/\S+/g, '<url>').slice(0, 200);
+	return msg
+		.split('\n')[0]
+		.replace(/https?:\/\/\S+/g, '<url>')
+		.slice(0, 200);
 }
 
 export const GET: RequestHandler = async ({ platform }) => {

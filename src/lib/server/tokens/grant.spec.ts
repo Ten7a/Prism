@@ -48,9 +48,7 @@ describe('grantDailyAllowanceIfDue', () => {
 
 	test('parallel grants race to a single ledger row', async () => {
 		const u = await seedUser();
-		await Promise.all(
-			Array.from({ length: 5 }, () => grantDailyAllowanceIfDue(u.id))
-		);
+		await Promise.all(Array.from({ length: 5 }, () => grantDailyAllowanceIfDue(u.id)));
 		expect(await getBalance(u.id)).toBe(10);
 		expect(await ledgerCount(u.id)).toBe(1);
 	});

@@ -13,13 +13,7 @@
 		children: Snippet;
 	};
 
-	let {
-		variant = 'primary',
-		size = 'md',
-		type = 'button',
-		children,
-		...rest
-	}: Props = $props();
+	let { variant = 'primary', size = 'md', type = 'button', children, ...rest }: Props = $props();
 </script>
 
 <button {type} class="btn {variant} {size}" {...rest}>

@@ -31,7 +31,10 @@ interface Metric {
 
 class Registry {
 	private counters = new Map<string, number>(); // key: name|labelKey
-	private histograms = new Map<string, { buckets: number[]; counts: number[]; sum: number; count: number; labelKey: string }>(); // key: name|labelKey
+	private histograms = new Map<
+		string,
+		{ buckets: number[]; counts: number[]; sum: number; count: number; labelKey: string }
+	>(); // key: name|labelKey
 	private metrics = new Map<string, Metric>();
 
 	incCounter(name: string, labels?: Labels, by = 1): void {
@@ -85,7 +88,9 @@ class Registry {
 						const lk = mergeLabels(baseLabels, `le=${h.buckets[i]}`);
 						lines.push(`${name}_bucket${renderLabels(lk)} ${cumulative}`);
 					}
-					lines.push(`${name}_bucket${renderLabels(mergeLabels(baseLabels, 'le=+Inf'))} ${h.count}`);
+					lines.push(
+						`${name}_bucket${renderLabels(mergeLabels(baseLabels, 'le=+Inf'))} ${h.count}`
+					);
 					lines.push(`${name}_sum${renderLabels(baseLabels)} ${h.sum}`);
 					lines.push(`${name}_count${renderLabels(baseLabels)} ${h.count}`);
 				}

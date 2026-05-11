@@ -32,21 +32,27 @@ Show non-intrusive Google AdSense slots on the web build, but only after explici
 
    ```svelte
    <script lang="ts">
-     import { consentStore } from '$lib/stores/consent';
-     import { onMount } from 'svelte';
-     export let slot: 'library-top' | 'landing-footer';
-     export let format: 'auto' | 'fluid' = 'auto';
-     let mounted = false;
-     onMount(() => { mounted = true; });
-     $: enabled = mounted && $consentStore.ads && !navigator.doNotTrack;
-     $: if (enabled) loadAdSenseOnce();
+   	import { consentStore } from '$lib/stores/consent';
+   	import { onMount } from 'svelte';
+   	export let slot: 'library-top' | 'landing-footer';
+   	export let format: 'auto' | 'fluid' = 'auto';
+   	let mounted = false;
+   	onMount(() => {
+   		mounted = true;
+   	});
+   	$: enabled = mounted && $consentStore.ads && !navigator.doNotTrack;
+   	$: if (enabled) loadAdSenseOnce();
    </script>
+
    {#if enabled}
-     <ins class="adsbygoogle" style="display:block"
-          data-ad-client={env.PUBLIC_ADSENSE_CLIENT_ID}
-          data-ad-slot={slotIdFor(slot)}
-          data-ad-format={format}
-          data-full-width-responsive="true"></ins>
+   	<ins
+   		class="adsbygoogle"
+   		style="display:block"
+   		data-ad-client={env.PUBLIC_ADSENSE_CLIENT_ID}
+   		data-ad-slot={slotIdFor(slot)}
+   		data-ad-format={format}
+   		data-full-width-responsive="true"
+   	></ins>
    {/if}
    ```
 
@@ -59,26 +65,26 @@ Show non-intrusive Google AdSense slots on the web build, but only after explici
 
 ```ts
 test('renders nothing without consent', async () => {
-  consentStore.set({ necessary: true, analytics: false, ads: false });
-  const screen = render(AdSlot, { props: { slot: 'library-top' } });
-  expect(screen.container.querySelector('ins.adsbygoogle')).toBeNull();
-  expect(document.querySelector('script[src*="pagead2"]')).toBeNull();
+	consentStore.set({ necessary: true, analytics: false, ads: false });
+	const screen = render(AdSlot, { props: { slot: 'library-top' } });
+	expect(screen.container.querySelector('ins.adsbygoogle')).toBeNull();
+	expect(document.querySelector('script[src*="pagead2"]')).toBeNull();
 });
 
 test('renders <ins> + injects script once consent granted', async () => {
-  consentStore.set({ necessary: true, analytics: true, ads: true });
-  render(AdSlot, { props: { slot: 'library-top' } });
-  await vi.waitFor(() => {
-    expect(document.querySelectorAll('script[src*="pagead2"]')).toHaveLength(1);
-    expect(document.querySelector('ins.adsbygoogle')).toBeTruthy();
-  });
+	consentStore.set({ necessary: true, analytics: true, ads: true });
+	render(AdSlot, { props: { slot: 'library-top' } });
+	await vi.waitFor(() => {
+		expect(document.querySelectorAll('script[src*="pagead2"]')).toHaveLength(1);
+		expect(document.querySelector('ins.adsbygoogle')).toBeTruthy();
+	});
 });
 
 test('respects Do-Not-Track even with consent', async () => {
-  Object.defineProperty(navigator, 'doNotTrack', { value: '1', configurable: true });
-  consentStore.set({ ads: true });
-  render(AdSlot, { props: { slot: 'library-top' } });
-  expect(document.querySelector('ins.adsbygoogle')).toBeNull();
+	Object.defineProperty(navigator, 'doNotTrack', { value: '1', configurable: true });
+	consentStore.set({ ads: true });
+	render(AdSlot, { props: { slot: 'library-top' } });
+	expect(document.querySelector('ins.adsbygoogle')).toBeNull();
 });
 ```
 
@@ -86,10 +92,10 @@ test('respects Do-Not-Track even with consent', async () => {
 
 ```ts
 test('AdSense script absent until banner accepted', async ({ page }) => {
-  await page.goto('/library', { waitUntil: 'networkidle' });
-  await expect(page.locator('script[src*="pagead2"]')).toHaveCount(0);
-  await page.getByRole('button', { name: /accept all/i }).click();
-  await expect(page.locator('script[src*="pagead2"]')).toHaveCount(1);
+	await page.goto('/library', { waitUntil: 'networkidle' });
+	await expect(page.locator('script[src*="pagead2"]')).toHaveCount(0);
+	await page.getByRole('button', { name: /accept all/i }).click();
+	await expect(page.locator('script[src*="pagead2"]')).toHaveCount(1);
 });
 ```
 

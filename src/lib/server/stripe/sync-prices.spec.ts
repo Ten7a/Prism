@@ -3,12 +3,20 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
 vi.mock('$env/dynamic/private', async () => {
-	const actual = await vi.importActual<typeof import('$env/dynamic/private')>('$env/dynamic/private');
+	const actual =
+		await vi.importActual<typeof import('$env/dynamic/private')>('$env/dynamic/private');
 	return { env: { ...actual.env, STRIPE_SECRET_KEY: 'sk_test_sync' } };
 });
 
 type Product = { id: string; metadata: Record<string, string>; active: boolean };
-type Price = { id: string; product: string; unit_amount: number; currency: string; active: boolean; metadata: Record<string, string> };
+type Price = {
+	id: string;
+	product: string;
+	unit_amount: number;
+	currency: string;
+	active: boolean;
+	metadata: Record<string, string>;
+};
 
 let products: Product[] = [];
 let prices: Price[] = [];

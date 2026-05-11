@@ -60,9 +60,7 @@
 	let ratio = $state<Ratio>('1:1');
 	let quality = $state<Quality>('1k');
 	let batch = $state(1);
-	let refKeys = $state<{ key: string; url: string }[]>(
-		data.preloadRef ? [data.preloadRef] : []
-	);
+	let refKeys = $state<{ key: string; url: string }[]>(data.preloadRef ? [data.preloadRef] : []);
 	let submitting = $state(false);
 	let submitError = $state<string | null>(null);
 
@@ -85,9 +83,7 @@
 	let recent = $state<RecentJob[]>([]);
 
 	const selectedModel = $derived(data.models.find((m) => m.id === modelId));
-	const estimate = $derived(
-		selectedModel ? estimateTokens(selectedModel, quality, batch) : 0
-	);
+	const estimate = $derived(selectedModel ? estimateTokens(selectedModel, quality, batch) : 0);
 	const balance = $derived(data.balance);
 	const insufficient = $derived(estimate > balance);
 	const promptValid = $derived(prompt.trim().length >= 1 && prompt.trim().length <= 4000);

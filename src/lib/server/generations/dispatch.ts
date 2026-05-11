@@ -43,11 +43,7 @@ function classifyError(err: unknown): string {
 export async function dispatch(jobId: string, platform?: App.Platform): Promise<void> {
 	let userId: string | null = null;
 	try {
-		const [job] = await db
-			.select()
-			.from(generationJob)
-			.where(eq(generationJob.id, jobId))
-			.limit(1);
+		const [job] = await db.select().from(generationJob).where(eq(generationJob.id, jobId)).limit(1);
 		if (!job) {
 			log.warn({ jobId }, 'job not found');
 			return;
@@ -56,10 +52,7 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 
 		if (job.status === 'cancelled') return;
 
-		await db
-			.update(generationJob)
-			.set({ status: 'running' })
-			.where(eq(generationJob.id, jobId));
+		await db.update(generationJob).set({ status: 'running' }).where(eq(generationJob.id, jobId));
 
 		const model = await getModel(job.modelId, platform);
 		if (!model) {
@@ -127,9 +120,7 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 			}
 		};
 
-		const settled = await Promise.all(
-			Array.from({ length: job.batch }, (_, i) => shardPromise(i))
-		);
+		const settled = await Promise.all(Array.from({ length: job.batch }, (_, i) => shardPromise(i)));
 
 		const successes = settled.filter((r): r is ShardOk => r.ok);
 		const failures = settled.filter((r): r is ShardErr => !r.ok);
@@ -173,10 +164,7 @@ export async function dispatch(jobId: string, platform?: App.Platform): Promise<
 		await finishJob(jobId, allImages, costActual);
 
 		// Now publish per-image events (need image IDs from DB to construct API URLs).
-		const insertedImages = await db
-			.select()
-			.from(imageTbl)
-			.where(eq(imageTbl.jobId, jobId));
+		const insertedImages = await db.select().from(imageTbl).where(eq(imageTbl.jobId, jobId));
 		for (const inserted of insertedImages) {
 			// Match insertion order back to the shard index by r2Key.
 			let shardIdx = 0;

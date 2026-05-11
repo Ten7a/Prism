@@ -2,12 +2,7 @@ import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import {
-	consentRecord,
-	generationJob,
-	image,
-	tokenLedger
-} from '$lib/server/db/schema';
+import { consentRecord, generationJob, image, tokenLedger } from '$lib/server/db/schema';
 import { user as userTable } from '$lib/server/db/auth.schema';
 
 export const GET: RequestHandler = async ({ locals }) => {

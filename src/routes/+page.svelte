@@ -2,19 +2,17 @@
 	import AdSlot from '$lib/components/AdSlot.svelte';
 </script>
 
-<section class="sec hero">
+<section class="hero sec">
 	<span class="tag">v0.1 — preview</span>
 	<h1>Generate images, mono and direct.</h1>
-	<p class="lede">
-		A focused image studio. No clutter, no ceremony — just prompt, generate, keep.
-	</p>
+	<p class="lede">A focused image studio. No clutter, no ceremony — just prompt, generate, keep.</p>
 	<div class="cta-row">
 		<a class="chip" href="/generate">Start generating</a>
 		<a class="chip" href="/library">Open library</a>
 	</div>
 </section>
 
-<section class="sec how">
+<section class="how sec">
 	<header class="sec-head">
 		<span class="tag">How it works</span>
 		<h2>Three steps. No detours.</h2>
@@ -38,7 +36,7 @@
 	</ol>
 </section>
 
-<section class="sec ad-footer">
+<section class="ad-footer sec">
 	<AdSlot slot="landing-footer" />
 </section>
 

@@ -65,9 +65,7 @@ describe('loadModels', () => {
 	});
 
 	test('falls back to snapshot when API errors', async () => {
-		server.use(
-			http.get('https://openrouter.test/api/v1/models', () => HttpResponse.error())
-		);
+		server.use(http.get('https://openrouter.test/api/v1/models', () => HttpResponse.error()));
 		const { loadModels } = await import('./registry');
 		const m = await loadModels();
 		expect(m.find((x) => x.id === 'google/gemini-2.5-flash-image')).toBeTruthy();

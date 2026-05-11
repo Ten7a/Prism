@@ -50,7 +50,7 @@
 			{/if}
 		</div>
 
-		<div class="block danger">
+		<div class="danger block">
 			<h2>Danger zone</h2>
 			<p class="muted">Delete your account and all data. This cannot be undone.</p>
 			{#if !confirming}
@@ -67,11 +67,9 @@
 					/>
 					<div class="row">
 						<Button type="submit" variant="danger">Permanently delete</Button>
-						<Button
-							type="button"
-							variant="ghost"
-							onclick={() => (confirming = false)}
-						>Cancel</Button>
+						<Button type="button" variant="ghost" onclick={() => (confirming = false)}
+							>Cancel</Button
+						>
 					</div>
 				</form>
 			{/if}

@@ -20,8 +20,8 @@
 	</header>
 
 	<p class="lede">
-		Tokens debit per generation. 1 token ≈ $0.01 of model spend. Top up any time —
-		unused tokens never expire.
+		Tokens debit per generation. 1 token ≈ $0.01 of model spend. Top up any time — unused tokens
+		never expire.
 	</p>
 
 	<div class="rows">

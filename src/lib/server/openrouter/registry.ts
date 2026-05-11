@@ -87,10 +87,7 @@ export async function loadModels(platform?: PlatformLike): Promise<ModelEntry[]>
 	}
 }
 
-export async function getModel(
-	id: string,
-	platform?: PlatformLike
-): Promise<ModelEntry | null> {
+export async function getModel(id: string, platform?: PlatformLike): Promise<ModelEntry | null> {
 	const all = await loadModels(platform);
 	return all.find((m) => m.id === id) ?? null;
 }

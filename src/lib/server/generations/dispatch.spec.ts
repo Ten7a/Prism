@@ -107,10 +107,7 @@ describe('dispatch', () => {
 
 		await dispatch(job.id);
 
-		const [updated] = await db
-			.select()
-			.from(generationJob)
-			.where(eq(generationJob.id, job.id));
+		const [updated] = await db.select().from(generationJob).where(eq(generationJob.id, job.id));
 		expect(updated.status).toBe('succeeded');
 		expect(updated.costActual).toBe(4);
 
@@ -138,10 +135,7 @@ describe('dispatch', () => {
 
 		await dispatch(job.id);
 
-		const [updated] = await db
-			.select()
-			.from(generationJob)
-			.where(eq(generationJob.id, job.id));
+		const [updated] = await db.select().from(generationJob).where(eq(generationJob.id, job.id));
 		expect(updated.status).toBe('failed');
 		expect(await getBalance(u.id)).toBe(before);
 	});
@@ -163,10 +157,7 @@ describe('dispatch', () => {
 
 		await dispatch(job.id);
 
-		const [updated] = await db
-			.select()
-			.from(generationJob)
-			.where(eq(generationJob.id, job.id));
+		const [updated] = await db.select().from(generationJob).where(eq(generationJob.id, job.id));
 		expect(updated.status).toBe('succeeded');
 
 		const imgs = await db.select().from(imageTbl).where(eq(imageTbl.jobId, job.id));
@@ -194,10 +185,7 @@ describe('dispatch', () => {
 
 		await dispatch(job.id);
 
-		const [updated] = await db
-			.select()
-			.from(generationJob)
-			.where(eq(generationJob.id, job.id));
+		const [updated] = await db.select().from(generationJob).where(eq(generationJob.id, job.id));
 		expect(updated.status).toBe('failed');
 		expect(updated.errorCode).toBe('model_unavailable');
 		expect(await getBalance(u.id)).toBe(before);

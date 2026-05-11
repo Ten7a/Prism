@@ -52,8 +52,7 @@
 				</select>
 			</label>
 		</div>
-		<pre><code
-			>{`<Button variant="${buttonVariant}" size="${buttonSize}">Action</Button>`}</code
+		<pre><code>{`<Button variant="${buttonVariant}" size="${buttonSize}">Action</Button>`}</code
 			></pre>
 	</article>
 
@@ -93,21 +92,11 @@
 			{#snippet row1Left()}<span>Buy 1000</span>{/snippet}
 			{#snippet row1Center()}<span>$10.00</span>{/snippet}
 			{#snippet row1Right()}<span>checkout →</span>{/snippet}
-			<RuleRow
-				href="#"
-				left={row1Left}
-				center={row1Center}
-				right={row1Right}
-			/>
+			<RuleRow href="#" left={row1Left} center={row1Center} right={row1Right} />
 			{#snippet row2Left()}<span>Buy 2500</span>{/snippet}
 			{#snippet row2Center()}<span>$22.50</span>{/snippet}
 			{#snippet row2Right()}<span>checkout →</span>{/snippet}
-			<RuleRow
-				href="#"
-				left={row2Left}
-				center={row2Center}
-				right={row2Right}
-			/>
+			<RuleRow href="#" left={row2Left} center={row2Center} right={row2Right} />
 		</div>
 		<pre><code>{`<RuleRow href="#" left={left} center={center} right={right} />`}</code></pre>
 	</article>
@@ -126,9 +115,7 @@
 				Toggle error
 			</Button>
 		</div>
-		<pre><code
-			>{`<Field label="Email" type="email" bind:value error="Required" />`}</code
-			></pre>
+		<pre><code>{`<Field label="Email" type="email" bind:value error="Required" />`}</code></pre>
 	</article>
 
 	<article id="modal">

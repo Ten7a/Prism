@@ -3,15 +3,9 @@ import { uploadKey, imageKey } from './keys';
 
 describe('storage keys', () => {
 	test('upload key includes only the validated extension', () => {
-		expect(uploadKey('user_1', 'image/png')).toMatch(
-			/^uploads\/user_1\/[0-9a-f-]{36}\.png$/
-		);
-		expect(uploadKey('user_1', 'image/jpeg')).toMatch(
-			/^uploads\/user_1\/[0-9a-f-]{36}\.jpg$/
-		);
-		expect(uploadKey('user_1', 'image/webp')).toMatch(
-			/^uploads\/user_1\/[0-9a-f-]{36}\.webp$/
-		);
+		expect(uploadKey('user_1', 'image/png')).toMatch(/^uploads\/user_1\/[0-9a-f-]{36}\.png$/);
+		expect(uploadKey('user_1', 'image/jpeg')).toMatch(/^uploads\/user_1\/[0-9a-f-]{36}\.jpg$/);
+		expect(uploadKey('user_1', 'image/webp')).toMatch(/^uploads\/user_1\/[0-9a-f-]{36}\.webp$/);
 	});
 
 	test('rejects path-traversal-shaped extensions', () => {

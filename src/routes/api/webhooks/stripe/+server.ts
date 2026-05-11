@@ -21,11 +21,7 @@ async function creditPurchase(event: Stripe.Event): Promise<{ emailJob: Promise<
 		return { emailJob: null };
 	}
 
-	const [pack] = await db
-		.select()
-		.from(tokenPack)
-		.where(eq(tokenPack.slug, packSlug))
-		.limit(1);
+	const [pack] = await db.select().from(tokenPack).where(eq(tokenPack.slug, packSlug)).limit(1);
 	if (!pack) {
 		log.warn({ packSlug }, 'unknown pack slug');
 		return { emailJob: null };
@@ -54,25 +50,27 @@ async function creditPurchase(event: Stripe.Event): Promise<{ emailJob: Promise<
 		amountCents: session.amount_total ?? pack.priceCents,
 		tokens: pack.tokens
 	});
-	const job = sendMail({ to: u.email, subject: tmpl.subject, html: tmpl.html, text: tmpl.text }).catch(
-		(err) => log.error({ err: (err as Error)?.message ?? String(err) }, 'receipt email failed')
+	const job = sendMail({
+		to: u.email,
+		subject: tmpl.subject,
+		html: tmpl.html,
+		text: tmpl.text
+	}).catch((err) =>
+		log.error({ err: (err as Error)?.message ?? String(err) }, 'receipt email failed')
 	);
 	return { emailJob: job };
 }
 
 async function reverseRefund(event: Stripe.Event): Promise<void> {
 	const charge = event.data.object as Stripe.Charge;
-	const piId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
+	const piId =
+		typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
 	if (!piId) return;
 	const pi = await stripe().paymentIntents.retrieve(piId);
 	const userId = pi.metadata?.userId;
 	const packSlug = pi.metadata?.packSlug;
 	if (!userId || !packSlug) return;
-	const [pack] = await db
-		.select()
-		.from(tokenPack)
-		.where(eq(tokenPack.slug, packSlug))
-		.limit(1);
+	const [pack] = await db.select().from(tokenPack).where(eq(tokenPack.slug, packSlug)).limit(1);
 	if (!pack) return;
 
 	try {

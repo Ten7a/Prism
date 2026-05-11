@@ -30,7 +30,10 @@
 		max?: number;
 		disabled?: boolean;
 		options?: Snippet;
-	} & Omit<HTMLInputAttributes & HTMLTextareaAttributes & HTMLSelectAttributes, 'id' | 'name' | 'value' | 'type'>;
+	} & Omit<
+		HTMLInputAttributes & HTMLTextareaAttributes & HTMLSelectAttributes,
+		'id' | 'name' | 'value' | 'type'
+	>;
 
 	let {
 		label,
@@ -58,9 +61,7 @@
 	const fieldId = $derived(id ?? generatedId);
 	const hintId = $derived(hint ? `${fieldId}-hint` : undefined);
 	const errorId = $derived(error ? `${fieldId}-error` : undefined);
-	const describedBy = $derived(
-		[hintId, errorId].filter(Boolean).join(' ') || undefined
-	);
+	const describedBy = $derived([hintId, errorId].filter(Boolean).join(' ') || undefined);
 </script>
 
 <div class="field" class:has-error={!!error}>
