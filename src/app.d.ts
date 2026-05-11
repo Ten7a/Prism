@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import type { User, Session } from 'better-auth/minimal';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
@@ -7,12 +8,23 @@ declare global {
 		interface Locals {
 			user?: User;
 			session?: Session;
+			log: import('$lib/server/log').Logger;
+			requestId: string;
 		}
 
 		// interface Error {}
 		// interface PageData {}
 		// interface PageState {}
-		// interface Platform {}
+		interface Platform {
+			env?: {
+				MODEL_CACHE?: KVNamespace;
+				RATE_LIMIT?: KVNamespace;
+				R2?: R2Bucket;
+			};
+			context?: {
+				waitUntil(promise: Promise<unknown>): void;
+			};
+		}
 	}
 }
 

@@ -22,12 +22,12 @@ Make the token economy real: a free daily allowance granted lazily, the canonica
 
 ## Pack catalogue (initial)
 
-| Slug      | Tokens | Price    | Notes                |
-| --------- | ------ | -------- | -------------------- |
-| `starter` | 100    | $5.00    | ≈ 25 standard images |
-| `pro`     | 250    | $10.00   | best $/token         |
-| `studio`  | 600    | $20.00   |                      |
-| `bulk`    | 2000   | $50.00   | best for power users |
+| Slug      | Tokens | Price  | Notes                |
+| --------- | ------ | ------ | -------------------- |
+| `starter` | 100    | $5.00  | ≈ 25 standard images |
+| `pro`     | 250    | $10.00 | best $/token         |
+| `studio`  | 600    | $20.00 |                      |
+| `bulk`    | 2000   | $50.00 | best for power users |
 
 Tokens are dimensioned at $0.01 ≈ 1 token (matching `USD_PER_TOKEN` from step 03).
 
@@ -37,16 +37,19 @@ Tokens are dimensioned at $0.01 ≈ 1 token (matching `USD_PER_TOKEN` from step 
 
    ```ts
    export async function grantDailyAllowanceIfDue(userId: string) {
-     const day = new Date().toISOString().slice(0, 10); // UTC YYYY-MM-DD
-     const tokens = Number(env.DAILY_ALLOWANCE_TOKENS ?? 10);
-     try {
-       await db.insert(tokenLedger).values({
-         userId, delta: tokens, reason: 'daily_grant', dailyGrantDay: day
-       });
-     } catch (e) {
-       if (!isUniqueViolation(e)) throw e;
-       // already granted today → no-op
-     }
+   	const day = new Date().toISOString().slice(0, 10); // UTC YYYY-MM-DD
+   	const tokens = Number(env.DAILY_ALLOWANCE_TOKENS ?? 10);
+   	try {
+   		await db.insert(tokenLedger).values({
+   			userId,
+   			delta: tokens,
+   			reason: 'daily_grant',
+   			dailyGrantDay: day
+   		});
+   	} catch (e) {
+   		if (!isUniqueViolation(e)) throw e;
+   		// already granted today → no-op
+   	}
    }
    ```
 
@@ -62,29 +65,29 @@ Tokens are dimensioned at $0.01 ≈ 1 token (matching `USD_PER_TOKEN` from step 
 
 ```ts
 test('grants 10 tokens on first call of the day', async () => {
-  const u = await seedUser();
-  await grantDailyAllowanceIfDue(u.id);
-  expect(await getBalance(u.id)).toBe(10);
+	const u = await seedUser();
+	await grantDailyAllowanceIfDue(u.id);
+	expect(await getBalance(u.id)).toBe(10);
 });
 
 test('second call same UTC day is a no-op', async () => {
-  const u = await seedUser();
-  await grantDailyAllowanceIfDue(u.id);
-  await grantDailyAllowanceIfDue(u.id);
-  expect(await getBalance(u.id)).toBe(10);
-  expect(await ledgerCount(u.id)).toBe(1);
+	const u = await seedUser();
+	await grantDailyAllowanceIfDue(u.id);
+	await grantDailyAllowanceIfDue(u.id);
+	expect(await getBalance(u.id)).toBe(10);
+	expect(await ledgerCount(u.id)).toBe(1);
 });
 
 test('next UTC day grants again', async () => {
-  vi.setSystemTime(new Date('2026-05-09T23:59:00Z'));
-  await grantDailyAllowanceIfDue(u.id);
-  vi.setSystemTime(new Date('2026-05-10T00:00:01Z'));
-  await grantDailyAllowanceIfDue(u.id);
-  expect(await getBalance(u.id)).toBe(20);
+	vi.setSystemTime(new Date('2026-05-09T23:59:00Z'));
+	await grantDailyAllowanceIfDue(u.id);
+	vi.setSystemTime(new Date('2026-05-10T00:00:01Z'));
+	await grantDailyAllowanceIfDue(u.id);
+	expect(await getBalance(u.id)).toBe(20);
 });
 
 test('balance never goes negative — generation refuses when balance < estimate', async () => {
-  // covered by step 05 test, referenced here
+	// covered by step 05 test, referenced here
 });
 ```
 
@@ -92,14 +95,17 @@ test('balance never goes negative — generation refuses when balance < estimate
 
 ```ts
 test('new user lands on /generate with daily allowance already granted', async ({ page }) => {
-  await signupAndVerify(page, 'fresh@prism.test');
-  await page.goto('/generate');
-  await expect(page.getByTestId('balance')).toHaveText(/10/);
+	await signupAndVerify(page, 'fresh@prism.test');
+	await page.goto('/generate');
+	await expect(page.getByTestId('balance')).toHaveText(/10/);
 });
 
 test('/pricing renders 4 packs with stripe-shaped CTAs', async ({ page }) => {
-  await page.goto('/pricing');
-  await expect(page.getByRole('link', { name: /buy 100/i })).toHaveAttribute('href', /checkout\?pack=starter/);
+	await page.goto('/pricing');
+	await expect(page.getByRole('link', { name: /buy 100/i })).toHaveAttribute(
+		'href',
+		/checkout\?pack=starter/
+	);
 });
 ```
 

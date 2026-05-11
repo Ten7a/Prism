@@ -45,13 +45,13 @@ import Page from './+page.svelte';
 import { expect, test } from 'vitest';
 
 test('landing renders headline and three-step section', async () => {
-  const screen = render(Page);
-  await expect.element(screen.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect.element(screen.getByText(/how it works/i)).toBeVisible();
+	const screen = render(Page);
+	await expect.element(screen.getByRole('heading', { level: 1 })).toBeVisible();
+	await expect.element(screen.getByText(/how it works/i)).toBeVisible();
 });
 
 test('skips overlays when reduced-motion is requested', async () => {
-  // mock matchMedia to return reduced-motion=true and assert .scanlines is absent
+	// mock matchMedia to return reduced-motion=true and assert .scanlines is absent
 });
 ```
 
@@ -61,15 +61,15 @@ Add to `e2e/foundations.test.ts`:
 import { expect, test } from '@playwright/test';
 
 test('navigation reaches all top-level routes', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.getByRole('link', { name: /generate/i })).toBeVisible();
-  await page.getByRole('link', { name: /library/i }).click();
-  await expect(page).toHaveURL(/\/library/);
+	await page.goto('/');
+	await expect(page.getByRole('link', { name: /generate/i })).toBeVisible();
+	await page.getByRole('link', { name: /library/i }).click();
+	await expect(page).toHaveURL(/\/library/);
 });
 
 test('layout renders scanlines overlay', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('.scanlines')).toHaveCount(1);
+	await page.goto('/');
+	await expect(page.locator('.scanlines')).toHaveCount(1);
 });
 ```
 

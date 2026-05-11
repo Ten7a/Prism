@@ -55,7 +55,7 @@ Wire email verification + password reset through Resend, expose a minimal `/acco
 5. Build `/login`, `/signup` SvelteKit form actions using `auth.api.signInEmail` / `signUpEmail`. Use the design-system `Field` component (added formally in step 11; for now inline a styled `<input>`).
 6. `/account` page: email, verified state, current balance (`getBalance`), last 10 generations (link to `/library/[id]`), Stripe receipt history link, "Delete account" danger zone.
 7. `/account/delete` action: confirms password, then `db.delete(user).where(eq(user.id, id))`. Cascades remove everything.
-8. After delete, schedule R2 object cleanup: enqueue a `deleted_user_keys` job row (or simpler: list `image.r2_key` *before* the cascade and pass to a `bulkDelete` call against R2 in the same handler).
+8. After delete, schedule R2 object cleanup: enqueue a `deleted_user_keys` job row (or simpler: list `image.r2_key` _before_ the cascade and pass to a `bulkDelete` call against R2 in the same handler).
 
 ## Tests
 
@@ -73,20 +73,20 @@ E2E `e2e/auth.test.ts`:
 
 ```ts
 test('signup → verify → login flow', async ({ page }) => {
-  await page.goto('/signup');
-  await page.getByLabel('Email').fill('e2e@prism.test');
-  await page.getByLabel('Password').fill('correct-horse-battery');
-  await page.getByRole('button', { name: 'Sign up' }).click();
-  // intercept Resend mock and grab the verify URL from outbox
-  const url = await waitForVerifyEmail('e2e@prism.test');
-  await page.goto(url);
-  await expect(page.getByText(/email verified/i)).toBeVisible();
-  await page.goto('/login');
-  // … sign in, expect /account
+	await page.goto('/signup');
+	await page.getByLabel('Email').fill('e2e@prism.test');
+	await page.getByLabel('Password').fill('correct-horse-battery');
+	await page.getByRole('button', { name: 'Sign up' }).click();
+	// intercept Resend mock and grab the verify URL from outbox
+	const url = await waitForVerifyEmail('e2e@prism.test');
+	await page.goto(url);
+	await expect(page.getByText(/email verified/i)).toBeVisible();
+	await page.goto('/login');
+	// … sign in, expect /account
 });
 
 test('account delete wipes ledger and images', async ({ page, request }) => {
-  // seed a verified user with one generation; call delete; assert /api/admin/peek shows zero rows for that user
+	// seed a verified user with one generation; call delete; assert /api/admin/peek shows zero rows for that user
 });
 ```
 

@@ -1,0 +1,61 @@
+.auth-shell {
+	max-width: 360px;
+	margin: 80px auto;
+	padding: 0 var(--spacing-pad);
+	font-family: var(--font-mono);
+	color: var(--color-fg);
+}
+
+.auth-shell h1 {
+	font-family: var(--font-mono);
+	font-weight: 500;
+	font-size: 18px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	margin: 0 0 4px;
+}
+
+.auth-shell p.lede {
+	color: var(--color-fg-70);
+	font-size: 12px;
+	margin: 0 0 28px;
+}
+
+.auth-form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.auth-error {
+	border: 1px solid var(--color-rule);
+	padding: 10px 12px;
+	font-size: 12px;
+	color: var(--color-fg);
+	background: #0a0a0a;
+}
+
+.auth-success {
+	border: 1px solid var(--color-rule);
+	padding: 10px 12px;
+	font-size: 12px;
+	color: var(--color-fg-70);
+	background: #0a0a0a;
+}
+
+.auth-foot {
+	margin-top: 24px;
+	font-size: 11px;
+	color: var(--color-fg-50);
+	display: flex;
+	gap: 14px;
+}
+
+.auth-foot a {
+	color: var(--color-fg-70);
+	text-decoration: none;
+}
+
+.auth-foot a:hover {
+	color: var(--color-fg);
+}
